@@ -46,7 +46,7 @@ Criterio di completamento:
 - Hive e Spark sono disponibili;
 - il dataset puo essere caricato in HDFS.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 2 - Preparazione e pulizia dati
 

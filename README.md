@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 0 completata**. Prossima fase: **Fase 1 - Ambiente Docker locale**.
+Fase corrente: **Fase 1 completata**. Prossima fase: **Fase 2 - Preparazione e pulizia dati**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -73,9 +73,86 @@ In questa fase il CSV puo anche essere presente nella root del progetto, ma rest
 
 ## Esecuzione locale
 
-Gli script di esecuzione saranno aggiunti nelle fasi successive:
+### Avvio ambiente Docker
 
-- Fase 1: ambiente Docker locale con HDFS, Hive e Spark
+Avviare HDFS, Hive e Spark:
+
+```powershell
+.\scripts\start.ps1
+```
+
+Se PowerShell blocca gli script per execution policy:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1
+```
+
+Controllare lo stato dei container:
+
+```powershell
+.\scripts\status.ps1
+```
+
+Verificare HDFS, Spark e Hive:
+
+```powershell
+.\scripts\check_environment.ps1
+```
+
+La stessa forma con `powershell -ExecutionPolicy Bypass -File ...` puo essere usata anche per gli altri script.
+
+Interfacce web locali:
+
+- HDFS NameNode: <http://localhost:9870>
+- Spark Master: <http://localhost:18080>
+- Spark Worker: <http://localhost:18081>
+
+### Caricamento dataset in HDFS
+
+Percorso consigliato del CSV:
+
+```text
+data/raw/flight_data_2024.csv
+```
+
+Caricare il dataset in HDFS:
+
+```powershell
+.\scripts\load_dataset_to_hdfs.ps1
+```
+
+Se il file si trova in un altro percorso:
+
+```powershell
+.\scripts\load_dataset_to_hdfs.ps1 -LocalPath "C:\percorso\flight_data_2024.csv"
+```
+
+Il file viene copiato in:
+
+```text
+/data/raw/flight_data_2024.csv
+```
+
+### Stop ambiente Docker
+
+Fermare i container mantenendo i volumi:
+
+```powershell
+.\scripts\stop.ps1
+```
+
+Fermare i container eliminando anche i volumi Docker:
+
+```powershell
+.\scripts\stop.ps1 -Volumes
+```
+
+Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metastore Hive.
+
+## Prossime fasi
+
+Gli script applicativi saranno aggiunti nelle fasi successive:
+
 - Fase 2: preparazione e pulizia dati
 - Fasi 3-6: job Spark SQL, Spark Core e Hive
 - Fase 7: benchmark e grafici

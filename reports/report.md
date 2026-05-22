@@ -127,13 +127,31 @@ Aspetti da discutere:
 
 ## 10. Riproducibilita
 
-Da completare progressivamente.
+La Fase 1 introduce un ambiente locale basato su Docker Compose con:
+
+- HDFS, composto da NameNode e DataNode;
+- Hive, composto da metastore PostgreSQL, Hive Metastore e HiveServer2;
+- Spark, composto da Spark Master e Spark Worker.
+
+Il dataset originale viene mantenuto fuori dal repository Git e caricato in HDFS tramite lo script `scripts/load_dataset_to_hdfs.ps1`.
+
+Stato Fase 1: completata. Il file `flight_data_2024.csv` e stato caricato in HDFS nel percorso `/data/raw/flight_data_2024.csv`.
+
+Comandi principali:
+
+```powershell
+.\scripts\start.ps1
+.\scripts\status.ps1
+.\scripts\check_environment.ps1
+.\scripts\load_dataset_to_hdfs.ps1
+.\scripts\stop.ps1
+```
 
 Elementi previsti:
 
-- prerequisiti;
-- setup Docker;
-- caricamento dataset;
+- prerequisiti: Docker Desktop con Docker Compose;
+- setup Docker tramite `docker-compose.yml`;
+- caricamento dataset in HDFS;
 - esecuzione analisi;
 - generazione benchmark;
 - generazione report PDF.
