@@ -6,8 +6,8 @@ services:
     container_name: ${PROJECT_NAME:-flight-delay-project}-namenode
     restart: unless-stopped
     ports:
-      - "${HDFS_NAMENODE_WEB_PORT:-9870}:9870"
-      - "${HDFS_NAMENODE_RPC_PORT:-8020}:8020"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${HDFS_NAMENODE_WEB_PORT:-9870}:9870"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${HDFS_NAMENODE_RPC_PORT:-8020}:8020"
     environment:
       CLUSTER_NAME: ${PROJECT_NAME:-flight-delay-project}
       CORE_CONF_fs_defaultFS: hdfs://namenode:8020
@@ -25,7 +25,7 @@ services:
     depends_on:
       - namenode
     ports:
-      - "${HDFS_DATANODE_WEB_PORT:-9864}:9864"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${HDFS_DATANODE_WEB_PORT:-9864}:9864"
     environment:
       SERVICE_PRECONDITION: namenode:9870
       CORE_CONF_fs_defaultFS: hdfs://namenode:8020
@@ -61,7 +61,7 @@ services:
       HIVE_SITE_CONF_datanucleus_schema_autoCreateAll: "true"
     command: /opt/hive/bin/hive --service metastore
     ports:
-      - "${HIVE_METASTORE_PORT:-9083}:9083"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${HIVE_METASTORE_PORT:-9083}:9083"
     networks:
       - bigdata
 
@@ -77,7 +77,7 @@ services:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: jdbc:postgresql://hive-metastore-postgresql/metastore
       HIVE_SITE_CONF_hive_metastore_uris: thrift://hive-metastore:9083
     ports:
-      - "${HIVE_PORT:-10000}:10000"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${HIVE_PORT:-10000}:10000"
     networks:
       - bigdata
 
@@ -98,8 +98,8 @@ services:
       - --webui-port
       - "8080"
     ports:
-      - "${SPARK_MASTER_PORT:-7077}:7077"
-      - "${SPARK_MASTER_WEB_PORT:-8080}:8080"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${SPARK_MASTER_PORT:-7077}:7077"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${SPARK_MASTER_WEB_PORT:-8080}:8080"
     volumes:
       - ./src:/opt/project/src
       - ./scripts:/opt/project/scripts
@@ -124,7 +124,7 @@ services:
       - --memory
       - "${SPARK_WORKER_MEMORY:-2G}"
     ports:
-      - "${SPARK_WORKER_WEB_PORT:-8081}:8081"
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${SPARK_WORKER_WEB_PORT:-8081}:8081"
     volumes:
       - ./src:/opt/project/src
       - ./scripts:/opt/project/scripts

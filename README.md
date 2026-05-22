@@ -61,6 +61,14 @@ Copy-Item .env.example .env
 
 Il file `.env` resta locale e non deve essere versionato.
 
+Per sicurezza, le porte Docker vengono pubblicate solo su `127.0.0.1` tramite:
+
+```env
+DOCKER_BIND_ADDRESS=127.0.0.1
+```
+
+In un futuro ambiente remoto o cloud, questo valore potra essere cambiato a `0.0.0.0` solo se la macchina e protetta da firewall/security group adeguati.
+
 ## Dataset
 
 Il dataset completo non viene incluso nel repository Git. Il file locale atteso e:
@@ -160,3 +168,5 @@ Gli script applicativi saranno aggiunti nelle fasi successive:
 ## Esecuzione futura su AWS
 
 La struttura del progetto evita path assoluti e separa configurazioni, dati e codice per facilitare una futura esecuzione su cluster Spark/Hadoop in ambiente cloud. Le istruzioni AWS saranno aggiunte quando verra definito l'ambiente di esecuzione.
+
+Per ora viene mantenuta una configurazione locale semplice. Quando si passera ad AWS, verra aggiunta una configurazione separata invece di forzare tutte le differenze dentro il `.env` locale.
