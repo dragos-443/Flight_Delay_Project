@@ -1,0 +1,42 @@
+# Environment
+.env
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Local IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dataset and generated data
+flight_data_2024.csv
+data/raw/*
+data/processed/*
+data/samples/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/samples/.gitkeep
+
+# Outputs and benchmark artifacts
+outputs/*
+!outputs/.gitkeep
+
+# Report generated artifacts
+reports/figures/*
+!reports/figures/.gitkeep
+reports/*.pdf
+
+# Spark/Hadoop/Hive local artifacts
+metastore_db/
+derby.log
+spark-warehouse/
+*.crc
+_SUCCESS
+
+# OS files
+.DS_Store
+Thumbs.db
