@@ -22,4 +22,18 @@ Invoke-Docker @("compose", "--env-file", ".env", "exec", "-T", "spark-master", "
 
 Write-Host ""
 Write-Host "Verifica Hive:"
-Invoke-Docker @("compose", "--env-file", ".env", "exec", "-T", "hive-server", "beeline", "-u", "jdbc:hive2://localhost:10000", "-e", "SHOW DATABASES;")
+$hiveReady = $false
+for ($attempt = 1; $attempt -le 12; $attempt++) {
+    docker compose --env-file .env exec -T hive-server beeline -u jdbc:hive2://localhost:10000 -e "SHOW DATABASES;"
+    if ($LASTEXITCODE -eq 0) {
+        $hiveReady = $true
+        break
+    }
+
+    Write-Host "Hive non ancora pronto, nuovo tentativo tra 10 secondi ($attempt/12)..."
+    Start-Sleep -Seconds 10
+}
+
+if (-not $hiveReady) {
+    throw "Hive non disponibile dopo 12 tentativi."
+}
