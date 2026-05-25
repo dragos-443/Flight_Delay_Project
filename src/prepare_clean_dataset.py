@@ -32,7 +32,6 @@ OUTPUT_COLUMNS = [
     "cancelled",
     "is_cancelled",
     "cancellation_code",
-    "diverted",
     "distance",
     "carrier_delay",
     "weather_delay",
@@ -79,7 +78,7 @@ def build_primary_disruption_cause():
     return F.when(F.col("cancelled") == 1, cancellation_cause).otherwise(delayed_cause)
 
 
-def build_clean_dataset(raw_df):
+def build_filtered_dataset(raw_df):
     typed_df = (
         raw_df.select(
             F.col("year").cast("int").alias("year"),
@@ -127,8 +126,11 @@ def build_clean_dataset(raw_df):
             .when(F.col("dep_delay") <= 60, F.lit("medium"))
             .otherwise(F.lit("high")),
         )
-        .select(*OUTPUT_COLUMNS)
     )
+
+
+def build_clean_dataset(raw_df):
+    return build_filtered_dataset(raw_df).select(*OUTPUT_COLUMNS)
 
 
 def main():
@@ -141,7 +143,8 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
 
     raw_df = spark.read.option("header", "true").option("mode", "PERMISSIVE").csv(args.input)
-    clean_df = build_clean_dataset(raw_df)
+    filtered_df = build_filtered_dataset(raw_df)
+    clean_df = filtered_df.select(*OUTPUT_COLUMNS)
 
     raw_count = raw_df.count()
     clean_count = clean_df.count()
@@ -152,7 +155,7 @@ def main():
         | F.col("origin").isNull()
         | F.col("dest").isNull()
     ).count()
-    diverted_count = clean_df.filter(F.col("diverted") == 1).count()
+    diverted_count = filtered_df.filter(F.col("diverted") == 1).count()
 
     if null_key_count != 0:
         raise RuntimeError(f"Clean dataset still contains {null_key_count} rows with null key fields.")
@@ -168,7 +171,7 @@ def main():
     print(f"processed_rows={clean_count}")
     print(f"removed_rows={raw_count - clean_count}")
     print(f"null_key_rows={null_key_count}")
-    print(f"diverted_rows_in_processed={diverted_count}")
+    print(f"diverted_rows_after_filter={diverted_count}")
     print(f"parquet_output={args.parquet_output}")
     print(f"csv_output={args.csv_output}")
 

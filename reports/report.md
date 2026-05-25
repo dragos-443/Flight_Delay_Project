@@ -51,7 +51,7 @@ Le colonne mantenute coprono tutte le informazioni necessarie alle analisi 3.1, 
 - compagnia e volo: `op_unique_carrier`, `op_carrier_fl_num`;
 - aeroporti e tratta: `origin`, `origin_city_name`, `origin_state_nm`, `dest`, `dest_city_name`, `dest_state_nm`;
 - ritardi: `dep_delay`, `arr_delay`;
-- cancellazioni e deviazioni: `cancelled`, `cancellation_code`, `diverted`;
+- cancellazioni: `cancelled`, `cancellation_code`;
 - cause di ritardo: `carrier_delay`, `weather_delay`, `nas_delay`, `security_delay`, `late_aircraft_delay`;
 - variabile di controllo: `distance`.
 
@@ -72,6 +72,8 @@ Sono state eliminate solo colonne non richieste dalle analisi previste:
 - `crs_elapsed_time`, `actual_elapsed_time`, `air_time`, utili per analisi di durata ma non per statistiche compagnia, report ritardi o ranking anomalie.
 
 Non viene eliminata nessuna colonna relativa a compagnia, aeroporti, mese, ritardi, cancellazioni o cause.
+
+La colonna `diverted` viene usata durante la pulizia per rimuovere i voli deviati, ma non viene salvata nel dataset processed. Dopo il filtro avrebbe sempre valore 0 e quindi non aggiungerebbe informazione utile alle analisi successive.
 
 ### 3.3 Regole di normalizzazione e pulizia
 
@@ -105,7 +107,7 @@ Conteggi prodotti dalla pipeline:
 - righe processed: 7.061.582;
 - righe rimosse: 17.499;
 - righe con chiavi nulle nel processed: 0;
-- righe deviate nel processed: 0.
+- righe deviate dopo il filtro: 0.
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 
