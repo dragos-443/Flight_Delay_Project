@@ -68,7 +68,7 @@ Criterio di completamento:
 - la pulizia e documentata;
 - tutte le tecnologie successive usano lo stesso input.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 3 - Analisi 3.1 con Spark SQL
 

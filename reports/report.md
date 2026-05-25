@@ -26,16 +26,86 @@ Colonne principali:
 
 ## 3. Preparazione e pulizia dei dati
 
-Da completare nella Fase 2.
+La Fase 2 produce un dataset processed comune, salvato in HDFS in formato Parquet e CSV, da usare come input unico per Spark SQL, Spark Core e Hive.
 
-Aspetti da documentare:
+Input raw:
 
-- selezione colonne;
-- normalizzazione tipi;
-- gestione valori nulli;
-- rimozione record non significativi;
-- derivazione tratta;
-- derivazione causa principale di ritardo o cancellazione.
+```text
+/data/raw/flight_data_2024.csv
+```
+
+Output processed:
+
+```text
+/data/processed/flights_2024_clean.parquet
+/data/processed/flights_2024_clean_csv
+```
+
+Il formato Parquet viene scelto come input principale delle analisi perche conserva lo schema, riduce lo spazio occupato e rende piu efficiente la lettura selettiva delle colonne. Il CSV viene mantenuto come output ispezionabile e compatibile con strumenti semplici.
+
+### 3.1 Colonne mantenute
+
+Le colonne mantenute coprono tutte le informazioni necessarie alle analisi 3.1, 3.2 e 3.3:
+
+- identificazione temporale: `year`, `month`, `day_of_month`, `day_of_week`, `fl_date`;
+- compagnia e volo: `op_unique_carrier`, `op_carrier_fl_num`;
+- aeroporti e tratta: `origin`, `origin_city_name`, `origin_state_nm`, `dest`, `dest_city_name`, `dest_state_nm`;
+- ritardi: `dep_delay`, `arr_delay`;
+- cancellazioni e deviazioni: `cancelled`, `cancellation_code`, `diverted`;
+- cause di ritardo: `carrier_delay`, `weather_delay`, `nas_delay`, `security_delay`, `late_aircraft_delay`;
+- variabile di controllo: `distance`.
+
+Sono state aggiunte le colonne derivate:
+
+- `route`, ottenuta concatenando `origin` e `dest`;
+- `is_cancelled`, flag normalizzato per il calcolo del tasso di cancellazione;
+- `primary_disruption_cause`, causa principale di ritardo o cancellazione;
+- `departure_delay_band`, fascia di ritardo in partenza per l'analisi 3.2.
+
+### 3.2 Colonne eliminate
+
+Sono state eliminate solo colonne non richieste dalle analisi previste:
+
+- `crs_dep_time` e `dep_time`, perche le analisi usano mese, aeroporto, compagnia e ritardo aggregato, non l'orario del giorno;
+- `taxi_out`, `wheels_off`, `wheels_on`, `taxi_in`, perche descrivono fasi operative del volo non richieste;
+- `crs_arr_time` e `arr_time`, perche le analisi usano `arr_delay`, non l'orario effettivo di arrivo;
+- `crs_elapsed_time`, `actual_elapsed_time`, `air_time`, utili per analisi di durata ma non per statistiche compagnia, report ritardi o ranking anomalie.
+
+Non viene eliminata nessuna colonna relativa a compagnia, aeroporti, mese, ritardi, cancellazioni o cause.
+
+### 3.3 Regole di normalizzazione e pulizia
+
+La pipeline converte `fl_date` in tipo data, normalizza campi numerici e flag, e applica `trim`/uppercase ai codici categorici principali.
+
+Sono rimossi i record:
+
+- senza `fl_date`, `month`, `op_unique_carrier`, `origin` o `dest`;
+- con `month` fuori dall'intervallo 1-12;
+- con `origin = dest`;
+- con `diverted = 1`.
+
+I voli cancellati vengono mantenuti, perche necessari al calcolo del tasso di cancellazione. Per questi record, eventuali valori mancanti in `dep_delay` e `arr_delay` restano nulli e saranno esclusi automaticamente dalle medie Spark/Hive.
+
+La colonna `primary_disruption_cause` viene derivata usando `cancellation_code` per i voli cancellati e, per i voli non cancellati, scegliendo la causa con valore massimo tra `carrier_delay`, `weather_delay`, `nas_delay`, `security_delay` e `late_aircraft_delay`. Se non esiste una causa valorizzata, viene assegnato `none`.
+
+La colonna `departure_delay_band` usa le fasce richieste dalla traccia:
+
+- `low`: ritardo in partenza minore di 15 minuti;
+- `medium`: ritardo tra 15 e 60 minuti inclusi;
+- `high`: ritardo maggiore di 60 minuti;
+- `unknown`: ritardo in partenza non disponibile.
+
+### 3.4 Stato output
+
+La pipeline e implementata in `src/prepare_clean_dataset.py` ed eseguita tramite `scripts/prepare_clean_dataset.ps1`.
+
+Conteggi prodotti dalla pipeline:
+
+- righe raw: 7.079.081;
+- righe processed: 7.061.582;
+- righe rimosse: 17.499;
+- righe con chiavi nulle nel processed: 0;
+- righe deviate nel processed: 0.
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 

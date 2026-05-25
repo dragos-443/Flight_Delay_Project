@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 1 completata**. Prossima fase: **Fase 2 - Preparazione e pulizia dati**.
+Fase corrente: **Fase 2 completata**. Prossima fase: **Fase 3 - Analisi 3.1 con Spark SQL**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -141,6 +141,43 @@ Il file viene copiato in:
 /data/raw/flight_data_2024.csv
 ```
 
+### Preparazione e pulizia dati
+
+La Fase 2 produce un dataset processed comune per Spark SQL, Spark Core e Hive.
+
+Eseguire la pipeline:
+
+```powershell
+.\scripts\prepare_clean_dataset.ps1
+```
+
+Se PowerShell blocca gli script per execution policy:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\prepare_clean_dataset.ps1
+```
+
+Input HDFS:
+
+```text
+/data/raw/flight_data_2024.csv
+```
+
+Output HDFS:
+
+```text
+/data/processed/flights_2024_clean.parquet
+/data/processed/flights_2024_clean_csv
+```
+
+Il Parquet e l'input consigliato per le analisi successive. Il CSV processed viene prodotto per ispezione e compatibilita.
+
+Verificare gli output:
+
+```powershell
+docker compose --env-file .env exec -T namenode hdfs dfs -ls -h /data/processed
+```
+
 ### Stop ambiente Docker
 
 Fermare i container mantenendo i volumi:
@@ -161,7 +198,6 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 Gli script applicativi saranno aggiunti nelle fasi successive:
 
-- Fase 2: preparazione e pulizia dati
 - Fasi 3-6: job Spark SQL, Spark Core e Hive
 - Fase 7: benchmark e grafici
 
