@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 2 completata**. Prossima fase: **Fase 3 - Analisi 3.1 con Spark SQL**.
+Fase corrente: **Fase 3 completata**. Prossima fase: **Fase 4 - Analisi 3.2 con Spark SQL**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -178,6 +178,67 @@ Verificare gli output:
 docker compose --env-file .env exec -T namenode hdfs dfs -ls -h /data/processed
 ```
 
+### Analisi 3.1 con Spark SQL
+
+La Fase 3 calcola le statistiche delle compagnie aeree per compagnia e tratta usando Spark SQL.
+
+Input HDFS:
+
+```text
+/data/processed/flights_2024_clean.parquet
+```
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_sql.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_sql.ps1 -RunSize all
+```
+
+Valori supportati per `-RunSize`:
+
+- `100k`
+- `500k`
+- `half`
+- `full`
+- `all`
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_1/spark_sql/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari salvati per i benchmark futuri:
+
+```text
+/outputs/benchmarks/analysis_3_1/spark_sql/timings.csv
+```
+
+Verificare gli output:
+
+```powershell
+docker compose --env-file .env exec -T namenode hdfs dfs -ls -h /outputs/analysis_3_1/spark_sql
+docker compose --env-file .env exec -T namenode hdfs dfs -cat /outputs/benchmarks/analysis_3_1/spark_sql/timings.csv
+```
+
 ### Stop ambiente Docker
 
 Fermare i container mantenendo i volumi:
@@ -196,9 +257,8 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 ## Prossime fasi
 
-Gli script applicativi saranno aggiunti nelle fasi successive:
-
-- Fasi 3-6: job Spark SQL, Spark Core e Hive
+- Fase 4: analisi 3.2 con Spark SQL
+- Fasi 5-6: replica con Spark Core e Hive
 - Fase 7: benchmark e grafici
 
 ## Esecuzione futura su AWS

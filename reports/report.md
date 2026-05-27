@@ -111,7 +111,7 @@ Conteggi prodotti dalla pipeline:
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 
-Da completare nelle Fasi 3, 5 e 6.
+La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. Le repliche Spark Core e Hive saranno completate nelle fasi successive.
 
 Metriche previste:
 
@@ -126,7 +126,65 @@ Metriche previste:
 
 ### Spark SQL
 
-Da completare.
+Implementazione: `src/analysis_3_1_spark_sql.py`.
+
+Script di esecuzione: `scripts/run_analysis_3_1_spark_sql.ps1`.
+
+Input:
+
+```text
+/data/processed/flights_2024_clean.parquet
+```
+
+Output:
+
+```text
+/outputs/analysis_3_1/spark_sql/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_1/spark_sql/timings.csv
+```
+
+La query aggrega i dati per compagnia (`op_unique_carrier`) e tratta (`route`). Per ogni gruppo calcola numero voli, ritardo minimo, massimo e medio in arrivo, tasso di cancellazione e mesi operativi. Il tasso di cancellazione e salvato come frazione tra 0 e 1: ad esempio `0.0138` corrisponde a circa `1.38%`.
+
+Le prove progressive sono state eseguite per validare il job su volumi crescenti. I tempi sono preliminari e saranno riusati nella Fase 7 per il confronto con Spark Core e Hive.
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 28.914 | 9.791 |
+| 500k | 27.878 | 9.868 |
+| half | 38.460 | 12.291 |
+| full | 89.990 | 13.248 |
+
+Prime 10 righe dell'output `full`:
+
+| op_unique_carrier | route | flight_count | min_arr_delay | max_arr_delay | avg_arr_delay | cancellation_rate | operating_months |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 9E | ABE-ATL | 1015 | -47.0 | 575.0 | 0.67 | 0.0138 | 1,2,3,4,5,6,7,8,9,10,11,12 |
+| 9E | ABY-ATL | 38 | -32.0 | 321.0 | 4.37 | 0.0 | 1,2,3,11,12 |
+| 9E | AEX-ATL | 877 | -34.0 | 979.0 | 9.61 | 0.0103 | 1,2,3,4,5,6,7,8,9,10,11,12 |
+| 9E | AGS-ATL | 1579 | -36.0 | 1091.0 | 6.89 | 0.0209 | 1,2,3,4,5,6,7,8,9,10,11,12 |
+| 9E | AGS-AUS | 2 | 12.0 | 92.0 | 52.0 | 0.0 | 4 |
+| 9E | AGS-DCA | 2 | 21.0 | 146.0 | 83.5 | 0.0 | 4 |
+| 9E | AGS-DTW | 6 | -15.0 | 9.0 | -3.17 | 0.0 | 4 |
+| 9E | AGS-JFK | 2 | -3.0 | 44.0 | 20.5 | 0.0 | 4 |
+| 9E | AGS-LGA | 11 | -17.0 | 43.0 | -1.0 | 0.0 | 4 |
+| 9E | ALB-DTW | 435 | -51.0 | 394.0 | -4.31 | 0.0046 | 1,2,3,4,5,6,7,8,9,10,11,12 |
 
 ### Spark Core
 

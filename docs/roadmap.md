@@ -90,7 +90,7 @@ Criterio di completamento:
 - risultati ispezionabili;
 - report aggiornato.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 4 - Analisi 3.2 con Spark SQL
 
