@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 3 completata**. Prossima fase: **Fase 4 - Analisi 3.2 con Spark SQL**.
+Fase corrente: **Fase 4 completata**. Prossima fase: **Fase 5 - Replica in Spark Core**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -226,6 +226,8 @@ Output HDFS:
     parquet/
 ```
 
+Gli output completi delle analisi sono salvati in HDFS per non versionare file generati e potenzialmente grandi nel repository. Il report include solo le prime 10 righe richieste dalla traccia; i risultati completi possono essere ispezionati o esportati da HDFS quando necessario.
+
 Tempi preliminari salvati per i benchmark futuri:
 
 ```text
@@ -237,6 +239,83 @@ Verificare gli output:
 ```powershell
 docker compose --env-file .env exec -T namenode hdfs dfs -ls -h /outputs/analysis_3_1/spark_sql
 docker compose --env-file .env exec -T namenode hdfs dfs -cat /outputs/benchmarks/analysis_3_1/spark_sql/timings.csv
+```
+
+Esportare localmente il CSV completo del run `full`, solo se serve:
+
+```powershell
+docker compose --env-file .env exec -T namenode hdfs dfs -getmerge /outputs/analysis_3_1/spark_sql/full/csv /tmp/analysis_3_1_full.csv
+docker compose --env-file .env cp namenode:/tmp/analysis_3_1_full.csv outputs/analysis_3_1_full.csv
+```
+
+### Analisi 3.2 con Spark SQL
+
+La Fase 4 genera il report dei ritardi per aeroporto di partenza, mese e fascia di ritardo usando Spark SQL.
+
+Input HDFS:
+
+```text
+/data/processed/flights_2024_clean.parquet
+```
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_2_spark_sql.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_2_spark_sql.ps1 -RunSize all
+```
+
+Valori supportati per `-RunSize`:
+
+- `100k`
+- `500k`
+- `half`
+- `full`
+- `all`
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_2/spark_sql/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Gli output completi delle analisi sono salvati in HDFS per non versionare file generati e potenzialmente grandi nel repository. Il report include solo le prime 10 righe richieste dalla traccia; i risultati completi possono essere ispezionati o esportati da HDFS quando necessario.
+
+Tempi preliminari salvati per i benchmark futuri:
+
+```text
+/outputs/benchmarks/analysis_3_2/spark_sql/timings.csv
+```
+
+Verificare gli output:
+
+```powershell
+docker compose --env-file .env exec -T namenode hdfs dfs -ls -h /outputs/analysis_3_2/spark_sql
+docker compose --env-file .env exec -T namenode hdfs dfs -cat /outputs/benchmarks/analysis_3_2/spark_sql/timings.csv
+```
+
+Esportare localmente il CSV completo del run `full`, solo se serve:
+
+```powershell
+docker compose --env-file .env exec -T namenode hdfs dfs -getmerge /outputs/analysis_3_2/spark_sql/full/csv /tmp/analysis_3_2_full.csv
+docker compose --env-file .env cp namenode:/tmp/analysis_3_2_full.csv outputs/analysis_3_2_full.csv
 ```
 
 ### Stop ambiente Docker
@@ -257,8 +336,8 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 ## Prossime fasi
 
-- Fase 4: analisi 3.2 con Spark SQL
-- Fasi 5-6: replica con Spark Core e Hive
+- Fase 5: replica in Spark Core
+- Fase 6: replica in Hive
 - Fase 7: benchmark e grafici
 
 ## Esecuzione futura su AWS

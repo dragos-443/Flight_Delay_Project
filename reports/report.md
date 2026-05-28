@@ -154,6 +154,8 @@ Output:
     parquet/
 ```
 
+Gli output completi sono salvati in HDFS, mentre nel repository vengono mantenuti codice, script, report e benchmark. Questa scelta evita di versionare file generati e potenzialmente grandi; se necessario, i CSV completi possono essere esportati localmente da HDFS con `hdfs dfs -getmerge`.
+
 Tempi preliminari:
 
 ```text
@@ -196,7 +198,7 @@ Da completare.
 
 ## 5. Analisi 3.2 - Report ritardi per aeroporto e mese
 
-Da completare nelle Fasi 4, 5 e 6.
+La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. Le repliche Spark Core e Hive saranno completate nelle fasi successive.
 
 Metriche previste:
 
@@ -210,7 +212,67 @@ Metriche previste:
 
 ### Spark SQL
 
-Da completare.
+Implementazione: `src/analysis_3_2_spark_sql.py`.
+
+Script di esecuzione: `scripts/run_analysis_3_2_spark_sql.ps1`.
+
+Input:
+
+```text
+/data/processed/flights_2024_clean.parquet
+```
+
+Output:
+
+```text
+/outputs/analysis_3_2/spark_sql/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Gli output completi sono salvati in HDFS, mentre nel repository vengono mantenuti codice, script, report e benchmark. Questa scelta evita di versionare file generati e potenzialmente grandi; se necessario, i CSV completi possono essere esportati localmente da HDFS con `hdfs dfs -getmerge`.
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_2/spark_sql/timings.csv
+```
+
+La query considera le tre fasce richieste dalla traccia (`low`, `medium`, `high`) ed esclude la fascia `unknown`, che contiene voli senza ritardo in partenza disponibile. Il report produce una riga per aeroporto di partenza, mese e fascia. Per ogni gruppo calcola numero voli, ritardo medio in partenza, ritardo medio in arrivo e le tre cause piu frequenti tra quelle disponibili. Le cause sono riportate nel formato `causa:conteggio`; quando non sono disponibili cause valorizzate viene scritto `none`.
+
+Le prove progressive sono state eseguite per validare il job su volumi crescenti. I tempi sono preliminari e saranno riusati nella Fase 7 per il confronto con Spark Core e Hive.
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 52.879 | 920 |
+| 500k | 49.841 | 1.817 |
+| half | 93.491 | 7.780 |
+| full | 126.203 | 11.902 |
+
+Prime 10 righe dell'output `full`:
+
+| origin | month | departure_delay_band | flight_count | avg_dep_delay | avg_arr_delay | top_3_causes |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| ABE | 1 | low | 275 | -5.51 | -14.56 | nas:20,carrier:1 |
+| ABE | 1 | medium | 30 | 34.9 | 32.5 | late_aircraft:12,carrier:8,nas:3 |
+| ABE | 1 | high | 30 | 241.3 | 234.03 | late_aircraft:14,carrier:12,nas:2 |
+| ABE | 2 | low | 296 | -6.62 | -19.57 | nas:10,carrier:1,weather:1 |
+| ABE | 2 | medium | 19 | 28.53 | 10.11 | carrier:5,late_aircraft:3 |
+| ABE | 2 | high | 14 | 227.93 | 217.93 | carrier:6,late_aircraft:6,nas:1 |
+| ABE | 3 | low | 339 | -6.19 | -18.37 | nas:7 |
+| ABE | 3 | medium | 28 | 30.68 | 19.89 | late_aircraft:7,carrier:4,nas:4 |
+| ABE | 3 | high | 23 | 173.43 | 163.39 | carrier:9,late_aircraft:8,nas:6 |
+| ABE | 4 | low | 303 | -6.45 | -17.3 | nas:5,late_aircraft:1 |
 
 ### Spark Core
 

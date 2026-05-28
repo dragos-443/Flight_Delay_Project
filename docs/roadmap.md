@@ -111,7 +111,7 @@ Criterio di completamento:
 - Spark SQL copre 3.1 e 3.2;
 - la logica delle analisi e validata prima di replicarla.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 5 - Replica in Spark Core
 
