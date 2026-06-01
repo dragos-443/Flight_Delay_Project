@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 5 completata**. Prossima fase: **Fase 6 - Replica in Hive**.
+Fase corrente: **Fase 6 completata**. Prossima fase: **Fase 7 - Benchmark e grafici**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -294,6 +294,56 @@ Tempi preliminari:
 /outputs/benchmarks/analysis_3_1/spark_core/timings.csv
 ```
 
+Il confronto tra tecnologie usa `src/compare_analysis_outputs.py`, uno script generico che riceve due output Parquet, li confronta con `exceptAll` in entrambe le direzioni e verifica che non esistano righe presenti solo in uno dei due risultati.
+
+### Analisi 3.1 con Hive
+
+La Fase 6 replica l'analisi 3.1 usando Hive su una tabella esterna Parquet.
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_1_hive.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_1_hive.ps1 -RunSize all
+```
+
+Confrontare l'output `full` con Spark SQL:
+
+```powershell
+.\scripts\run_analysis_3_1_hive.ps1 -RunSize full -CompareWithSparkSql
+```
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_1/hive/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_1/hive/timings.csv
+```
+
+Il flag `-CompareWithSparkSql` riusa lo stesso comparatore generico `src/compare_analysis_outputs.py`, passando come input l'output Parquet Hive e quello Spark SQL della stessa analisi.
+
 ### Analisi 3.2 con Spark SQL
 
 La Fase 4 genera il report dei ritardi per aeroporto di partenza, mese e fascia di ritardo usando Spark SQL.
@@ -410,6 +460,54 @@ Tempi preliminari:
 /outputs/benchmarks/analysis_3_2/spark_core/timings.csv
 ```
 
+### Analisi 3.2 con Hive
+
+La Fase 6 replica l'analisi 3.2 usando Hive su una tabella esterna Parquet.
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_2_hive.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_2_hive.ps1 -RunSize all
+```
+
+Confrontare l'output `full` con Spark SQL:
+
+```powershell
+.\scripts\run_analysis_3_2_hive.ps1 -RunSize full -CompareWithSparkSql
+```
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_2/hive/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_2/hive/timings.csv
+```
+
+Nota sui run limitati: Hive e Spark possono leggere i file Parquet in ordine fisico diverso quando si usa `LIMIT` senza ordinamento globale. Per questo i run `100k`, `500k` e `half` sono usati come benchmark progressivi della tecnologia, mentre il confronto esatto tra tecnologie viene eseguito sul run `full`, dove l'input e identico.
+
 ### Stop ambiente Docker
 
 Fermare i container mantenendo i volumi:
@@ -428,7 +526,6 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 ## Prossime fasi
 
-- Fase 6: replica in Hive
 - Fase 7: benchmark e grafici
 
 ## Esecuzione futura su AWS

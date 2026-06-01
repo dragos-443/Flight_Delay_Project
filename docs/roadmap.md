@@ -149,7 +149,7 @@ Criterio di completamento:
 - Hive produce output per 3.1 e 3.2;
 - requisiti minimi sulle tecnologie soddisfatti.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 7 - Benchmark e grafici
 

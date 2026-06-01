@@ -111,7 +111,7 @@ Conteggi prodotti dalla pipeline:
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 
-La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. La replica Spark Core e stata completata nella Fase 5; la replica Hive sara completata nella fase successiva.
+La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. Le repliche Spark Core e Hive sono state completate nelle Fasi 5 e 6.
 
 Metriche previste:
 
@@ -229,15 +229,54 @@ La replica Spark Core legge lo stesso Parquet pulito usato da Spark SQL, convert
 
 Il confronto automatico tra output Parquet Spark Core e Spark SQL ha prodotto `left_only_rows=0` e `right_only_rows=0` sia sul sample `100k` sia sul dataset `full`.
 
+Il confronto viene eseguito tramite `src/compare_analysis_outputs.py`, uno script generico che riceve due output Parquet, calcola `exceptAll` in entrambe le direzioni e verifica che non esistano righe presenti solo in uno dei due risultati.
+
 Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark SQL.
 
 ### Hive
 
-Da completare.
+Implementazione: `scripts/run_analysis_3_1_hive.ps1`.
+
+La replica Hive crea una tabella esterna `flight_delay.flights_clean` sul Parquet processed comune e materializza il risultato in una tabella Parquet dedicata per ogni run size. Viene inoltre esportata una copia CSV in HDFS.
+
+Output:
+
+```text
+/outputs/analysis_3_1/hive/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_1/hive/timings.csv
+```
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 9.521 | 8.710 |
+| 500k | 11.201 | 9.681 |
+| half | 25.884 | 12.180 |
+| full | 20.778 | 13.248 |
+
+Il confronto automatico tra output Parquet Hive e Spark SQL sul dataset `full` ha prodotto `left_only_rows=0` e `right_only_rows=0`.
+
+Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark SQL.
 
 ## 5. Analisi 3.2 - Report ritardi per aeroporto e mese
 
-La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. La replica Spark Core e stata completata nella Fase 5; la replica Hive sara completata nella fase successiva.
+La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. Le repliche Spark Core e Hive sono state completate nelle Fasi 5 e 6.
 
 Metriche previste:
 
@@ -364,7 +403,50 @@ Nei test locali Docker, Spark Core produce output identici a Spark SQL ma con te
 
 ### Hive
 
-Da completare.
+Implementazione: `scripts/run_analysis_3_2_hive.ps1`.
+
+La replica Hive usa la stessa tabella esterna Parquet della 3.1, filtra le tre fasce richieste, calcola le metriche per aeroporto/mese/fascia e ricostruisce le top 3 cause tramite conteggio, `ROW_NUMBER` e aggregazione condizionale. Il risultato viene salvato sia come Parquet sia come CSV in HDFS.
+
+Output:
+
+```text
+/outputs/analysis_3_2/hive/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_2/hive/timings.csv
+```
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 17.044 | 846 |
+| 500k | 19.490 | 992 |
+| half | 40.968 | 6.770 |
+| full | 30.224 | 11.902 |
+
+Il confronto automatico tra output Parquet Hive e Spark SQL sul dataset `full` ha prodotto `left_only_rows=0` e `right_only_rows=0`.
+
+Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark SQL.
+
+### Primo confronto con Hive
+
+Hive completa le tre tecnologie obbligatorie del progetto. Rispetto a Spark SQL, la query Hive richiede qualche accorgimento in piu per produrre stringhe ordinate e top 3 cause compatibili con l'output Spark, ma resta dichiarativa e adatta a materializzare tabelle Parquet in HDFS.
+
+I run limitati (`100k`, `500k`, `half`) sono usati come prove progressive di esecuzione. Poiche Hive e Spark possono leggere i file Parquet in ordine fisico diverso quando si usa `LIMIT` senza ordinamento globale, questi run non rappresentano necessariamente lo stesso sottoinsieme di righe tra tecnologie. Il confronto esatto viene quindi eseguito sul dataset `full`, dove l'input e identico, e conferma la coerenza dei risultati.
 
 ## 6. Analisi 3.3 - Ranking anomalie compagnia-aeroporto
 
