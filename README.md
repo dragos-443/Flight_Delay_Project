@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 4 completata**. Prossima fase: **Fase 5 - Replica in Spark Core**.
+Fase corrente: **Fase 5 completata**. Prossima fase: **Fase 6 - Replica in Hive**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -248,6 +248,52 @@ docker compose --env-file .env exec -T namenode hdfs dfs -getmerge /outputs/anal
 docker compose --env-file .env cp namenode:/tmp/analysis_3_1_full.csv outputs/analysis_3_1_full.csv
 ```
 
+### Analisi 3.1 con Spark Core
+
+La Fase 5 replica l'analisi 3.1 usando trasformazioni RDD di Spark Core.
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_core.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_core.ps1 -RunSize all
+```
+
+Confrontare l'output con Spark SQL per la stessa dimensione:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_core.ps1 -RunSize 100k -CompareWithSparkSql
+```
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_1/spark_core/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_1/spark_core/timings.csv
+```
+
 ### Analisi 3.2 con Spark SQL
 
 La Fase 4 genera il report dei ritardi per aeroporto di partenza, mese e fascia di ritardo usando Spark SQL.
@@ -318,6 +364,52 @@ docker compose --env-file .env exec -T namenode hdfs dfs -getmerge /outputs/anal
 docker compose --env-file .env cp namenode:/tmp/analysis_3_2_full.csv outputs/analysis_3_2_full.csv
 ```
 
+### Analisi 3.2 con Spark Core
+
+La Fase 5 replica l'analisi 3.2 usando trasformazioni RDD di Spark Core.
+
+Eseguire una singola dimensione:
+
+```powershell
+.\scripts\run_analysis_3_2_spark_core.ps1 -RunSize full
+```
+
+Eseguire tutte le prove progressive:
+
+```powershell
+.\scripts\run_analysis_3_2_spark_core.ps1 -RunSize all
+```
+
+Confrontare l'output con Spark SQL per la stessa dimensione:
+
+```powershell
+.\scripts\run_analysis_3_2_spark_core.ps1 -RunSize 100k -CompareWithSparkSql
+```
+
+Output HDFS:
+
+```text
+/outputs/analysis_3_2/spark_core/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_2/spark_core/timings.csv
+```
+
 ### Stop ambiente Docker
 
 Fermare i container mantenendo i volumi:
@@ -336,7 +428,6 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 ## Prossime fasi
 
-- Fase 5: replica in Spark Core
 - Fase 6: replica in Hive
 - Fase 7: benchmark e grafici
 

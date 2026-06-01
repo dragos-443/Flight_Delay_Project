@@ -111,7 +111,7 @@ Conteggi prodotti dalla pipeline:
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 
-La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. Le repliche Spark Core e Hive saranno completate nelle fasi successive.
+La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. La replica Spark Core e stata completata nella Fase 5; la replica Hive sara completata nella fase successiva.
 
 Metriche previste:
 
@@ -190,7 +190,46 @@ Prime 10 righe dell'output `full`:
 
 ### Spark Core
 
-Da completare.
+Implementazione: `src/analysis_3_1_spark_core.py`.
+
+Script di esecuzione: `scripts/run_analysis_3_1_spark_core.ps1`.
+
+Output:
+
+```text
+/outputs/analysis_3_1/spark_core/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_1/spark_core/timings.csv
+```
+
+La replica Spark Core legge lo stesso Parquet pulito usato da Spark SQL, converte i record in RDD e calcola le metriche con trasformazioni `map`, `reduceByKey` e `sortBy`. Il risultato viene poi riconvertito in DataFrame solo per salvare gli output in CSV e Parquet con lo stesso schema della versione SQL.
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 27.343 | 9.791 |
+| 500k | 40.116 | 9.868 |
+| half | 131.851 | 12.291 |
+| full | 139.875 | 13.248 |
+
+Il confronto automatico tra output Parquet Spark Core e Spark SQL ha prodotto `left_only_rows=0` e `right_only_rows=0` sia sul sample `100k` sia sul dataset `full`.
+
+Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark SQL.
 
 ### Hive
 
@@ -198,7 +237,7 @@ Da completare.
 
 ## 5. Analisi 3.2 - Report ritardi per aeroporto e mese
 
-La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. Le repliche Spark Core e Hive saranno completate nelle fasi successive.
+La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. La replica Spark Core e stata completata nella Fase 5; la replica Hive sara completata nella fase successiva.
 
 Metriche previste:
 
@@ -276,7 +315,52 @@ Prime 10 righe dell'output `full`:
 
 ### Spark Core
 
-Da completare.
+Implementazione: `src/analysis_3_2_spark_core.py`.
+
+Script di esecuzione: `scripts/run_analysis_3_2_spark_core.ps1`.
+
+Output:
+
+```text
+/outputs/analysis_3_2/spark_core/
+  100k/
+    csv/
+    parquet/
+  500k/
+    csv/
+    parquet/
+  half/
+    csv/
+    parquet/
+  full/
+    csv/
+    parquet/
+```
+
+Tempi preliminari:
+
+```text
+/outputs/benchmarks/analysis_3_2/spark_core/timings.csv
+```
+
+La replica Spark Core filtra le tre fasce richieste, aggrega i conteggi e le somme dei ritardi con RDD keyed per `(origin, month, departure_delay_band)` e calcola le top 3 cause con un secondo conteggio per causa. Anche in questo caso il DataFrame finale viene usato solo per materializzare output CSV e Parquet.
+
+| Run | Tempo esecuzione (s) | Righe output |
+| --- | ---: | ---: |
+| 100k | 30.001 | 920 |
+| 500k | 44.418 | 1.817 |
+| half | 162.215 | 7.780 |
+| full | 232.650 | 11.902 |
+
+Il confronto automatico tra output Parquet Spark Core e Spark SQL ha prodotto `left_only_rows=0` e `right_only_rows=0` sia sul sample `100k` sia sul dataset `full`.
+
+Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark SQL.
+
+### Primo confronto Spark SQL e Spark Core
+
+Spark SQL risulta piu compatto ed espressivo: le aggregazioni, l'ordinamento delle cause e le funzioni finestra sono descritti direttamente nella query. Spark Core richiede invece una gestione esplicita dello stato aggregato, delle chiavi composte, delle cause e dell'arrotondamento, ma rende piu visibile il flusso distribuito `map`/`reduceByKey`.
+
+Nei test locali Docker, Spark Core produce output identici a Spark SQL ma con tempi generalmente piu alti sui run grandi, soprattutto per l'analisi 3.2. La differenza e coerente con la maggiore quantita di logica espressa lato Python/RDD e con la minore ottimizzazione rispetto al piano Spark SQL.
 
 ### Hive
 

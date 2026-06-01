@@ -129,7 +129,7 @@ Criterio di completamento:
 - Spark Core produce output coerenti con Spark SQL;
 - il report contiene un primo confronto tecnico.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 6 - Replica in Hive
 
