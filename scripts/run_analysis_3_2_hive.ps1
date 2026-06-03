@@ -153,14 +153,22 @@ function Get-HiveCount {
 
 $hdfsNameNode = Read-DotEnvValue ".env" "HDFS_NAMENODE"
 $hdfsProcessedDir = Read-DotEnvValue ".env" "HDFS_PROCESSED_DIR"
+$hdfsSamplesDir = Read-DotEnvValue ".env" "HDFS_SAMPLES_DIR"
 $sparkMasterUrl = Read-DotEnvValue ".env" "SPARK_MASTER_URL"
 
 if (-not $hdfsNameNode) { $hdfsNameNode = "hdfs://namenode:8020" }
 if (-not $hdfsProcessedDir) { $hdfsProcessedDir = "/data/processed" }
+if (-not $hdfsSamplesDir) { $hdfsSamplesDir = "/data/samples" }
 if (-not $sparkMasterUrl) { $sparkMasterUrl = "spark://spark-master:7077" }
 
-if (-not $InputPath) {
-    $InputPath = "$hdfsProcessedDir/flights_2024_clean.parquet"
+function Resolve-InputPath {
+    param([string]$CurrentRunSize)
+
+    if ($InputPath) {
+        return $InputPath
+    }
+
+    return "$hdfsSamplesDir/flights_clean_$CurrentRunSize.parquet"
 }
 
 if (-not $OutputRoot) {
@@ -186,8 +194,34 @@ if ($RunSize -eq "all") {
 
 $setupSql = @"
 CREATE DATABASE IF NOT EXISTS flight_delay;
+"@
+Invoke-BeelineChecked $setupSql
+
+foreach ($currentRunSize in $runSizes) {
+    $currentInputPath = Resolve-InputPath $currentRunSize
+    $parquetOutputPath = "$OutputRoot/$currentRunSize/parquet"
+    $csvOutputPath = "$OutputRoot/$currentRunSize/csv"
+    $qualifiedParquetOutputPath = "$hdfsNameNode$parquetOutputPath"
+    $runTimestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    $outputTable = "analysis_3_2_hive_$($currentRunSize -replace '[^A-Za-z0-9_]', '_')"
+
+    Write-Host "Eseguo analisi 3.2 Hive ($currentRunSize)"
+    Write-Host "Input: $currentInputPath"
+    Write-Host "Output Parquet: $parquetOutputPath"
+    Write-Host "Output CSV: $csvOutputPath"
+
+    Invoke-DockerChecked @(
+        "compose", "--env-file", ".env",
+        "exec", "-T", "namenode",
+        "hdfs", "dfs", "-rm", "-r", "-f",
+        $parquetOutputPath,
+        $csvOutputPath
+    ) | Out-Null
+
+    $analysisSql = @"
 USE flight_delay;
-CREATE EXTERNAL TABLE IF NOT EXISTS flights_clean (
+DROP TABLE IF EXISTS flights_clean;
+CREATE EXTERNAL TABLE flights_clean (
   year INT,
   month INT,
   day_of_month INT,
@@ -217,46 +251,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS flights_clean (
   departure_delay_band STRING
 )
 STORED AS PARQUET
-LOCATION '$InputPath';
-"@
-Invoke-BeelineChecked $setupSql
+LOCATION '$currentInputPath';
 
-$totalRows = $null
-
-foreach ($currentRunSize in $runSizes) {
-    $parquetOutputPath = "$OutputRoot/$currentRunSize/parquet"
-    $csvOutputPath = "$OutputRoot/$currentRunSize/csv"
-    $qualifiedParquetOutputPath = "$hdfsNameNode$parquetOutputPath"
-    $runTimestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    $outputTable = "analysis_3_2_hive_$($currentRunSize -replace '[^A-Za-z0-9_]', '_')"
-
-    $limitClause = ""
-    if ($currentRunSize -eq "100k") {
-        $limitClause = "LIMIT 100000"
-    } elseif ($currentRunSize -eq "500k") {
-        $limitClause = "LIMIT 500000"
-    } elseif ($currentRunSize -eq "half") {
-        if ($null -eq $totalRows) {
-            $totalRows = Get-HiveCount "flights_clean"
-        }
-        $limitClause = "LIMIT $([Math]::Floor($totalRows / 2))"
-    }
-
-    Write-Host "Eseguo analisi 3.2 Hive ($currentRunSize)"
-    Write-Host "Input: $InputPath"
-    Write-Host "Output Parquet: $parquetOutputPath"
-    Write-Host "Output CSV: $csvOutputPath"
-
-    Invoke-DockerChecked @(
-        "compose", "--env-file", ".env",
-        "exec", "-T", "namenode",
-        "hdfs", "dfs", "-rm", "-r", "-f",
-        $parquetOutputPath,
-        $csvOutputPath
-    ) | Out-Null
-
-    $analysisSql = @"
-USE flight_delay;
 DROP TABLE IF EXISTS $outputTable;
 CREATE TABLE $outputTable
 STORED AS PARQUET
@@ -265,7 +261,6 @@ AS
 WITH analysis_input AS (
   SELECT *
   FROM flights_clean
-  $limitClause
 ),
 banded_flights AS (
   SELECT
@@ -393,7 +388,7 @@ LIMIT 10;
         -Analysis "analysis_3_2" `
         -Technology "hive" `
         -CurrentRunSize $currentRunSize `
-        -CurrentInputPath $InputPath `
+        -CurrentInputPath $currentInputPath `
         -CurrentOutputPath "$OutputRoot/$currentRunSize" `
         -ExecutionTimeSeconds $elapsedSeconds `
         -OutputRows $outputRows `

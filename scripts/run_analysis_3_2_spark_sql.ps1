@@ -114,14 +114,22 @@ function Save-TimingRow {
 
 $hdfsNameNode = Read-DotEnvValue ".env" "HDFS_NAMENODE"
 $hdfsProcessedDir = Read-DotEnvValue ".env" "HDFS_PROCESSED_DIR"
+$hdfsSamplesDir = Read-DotEnvValue ".env" "HDFS_SAMPLES_DIR"
 $sparkMasterUrl = Read-DotEnvValue ".env" "SPARK_MASTER_URL"
 
 if (-not $hdfsNameNode) { $hdfsNameNode = "hdfs://namenode:8020" }
 if (-not $hdfsProcessedDir) { $hdfsProcessedDir = "/data/processed" }
+if (-not $hdfsSamplesDir) { $hdfsSamplesDir = "/data/samples" }
 if (-not $sparkMasterUrl) { $sparkMasterUrl = "spark://spark-master:7077" }
 
-if (-not $InputPath) {
-    $InputPath = "$hdfsNameNode$hdfsProcessedDir/flights_2024_clean.parquet"
+function Resolve-InputPath {
+    param([string]$CurrentRunSize)
+
+    if ($InputPath) {
+        return $InputPath
+    }
+
+    return "$hdfsNameNode$hdfsSamplesDir/flights_clean_$CurrentRunSize.parquet"
 }
 
 if (-not $OutputRoot) {
@@ -146,12 +154,13 @@ if ($RunSize -eq "all") {
 }
 
 foreach ($currentRunSize in $runSizes) {
+    $currentInputPath = Resolve-InputPath $currentRunSize
     $parquetOutputPath = "$OutputRoot/$currentRunSize/parquet"
     $csvOutputPath = "$OutputRoot/$currentRunSize/csv"
     $runTimestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
     Write-Host "Eseguo analisi 3.2 Spark SQL ($currentRunSize)"
-    Write-Host "Input: $InputPath"
+    Write-Host "Input: $currentInputPath"
     Write-Host "Output Parquet: $parquetOutputPath"
     Write-Host "Output CSV: $csvOutputPath"
 
@@ -163,7 +172,7 @@ foreach ($currentRunSize in $runSizes) {
         "--master", $sparkMasterUrl,
         "--conf", "spark.hadoop.fs.defaultFS=$hdfsNameNode",
         "/opt/project/src/analysis_3_2_spark_sql.py",
-        "--input", $InputPath,
+        "--input", $currentInputPath,
         "--parquet-output", $parquetOutputPath,
         "--csv-output", $csvOutputPath,
         "--run-size", $currentRunSize
@@ -184,7 +193,7 @@ foreach ($currentRunSize in $runSizes) {
         -Analysis "analysis_3_2" `
         -Technology "spark_sql" `
         -CurrentRunSize $currentRunSize `
-        -CurrentInputPath $InputPath `
+        -CurrentInputPath $currentInputPath `
         -CurrentOutputPath "$OutputRoot/$currentRunSize" `
         -ExecutionTimeSeconds $elapsedSeconds `
         -OutputRows $outputRows `

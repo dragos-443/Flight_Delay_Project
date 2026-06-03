@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confronta
 
 ## Stato del progetto
 
-Fase corrente: **Fase 6 completata**. Prossima fase: **Fase 7 - Benchmark e grafici**.
+Fase corrente: **Fase 7 completata**. Prossima fase: **Fase 8 - Analisi critica e rifinitura report**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
@@ -185,7 +185,7 @@ La Fase 3 calcola le statistiche delle compagnie aeree per compagnia e tratta us
 Input HDFS:
 
 ```text
-/data/processed/flights_2024_clean.parquet
+/data/samples/flights_clean_<run_size>.parquet
 ```
 
 Eseguire una singola dimensione:
@@ -351,7 +351,7 @@ La Fase 4 genera il report dei ritardi per aeroporto di partenza, mese e fascia 
 Input HDFS:
 
 ```text
-/data/processed/flights_2024_clean.parquet
+/data/samples/flights_clean_<run_size>.parquet
 ```
 
 Eseguire una singola dimensione:
@@ -506,7 +506,51 @@ Tempi preliminari:
 /outputs/benchmarks/analysis_3_2/hive/timings.csv
 ```
 
-Nota sui run limitati: Hive e Spark possono leggere i file Parquet in ordine fisico diverso quando si usa `LIMIT` senza ordinamento globale. Per questo i run `100k`, `500k` e `half` sono usati come benchmark progressivi della tecnologia, mentre il confronto esatto tra tecnologie viene eseguito sul run `full`, dove l'input e identico.
+### Preparazione sample benchmark
+
+Prima di eseguire benchmark confrontabili, preparare i sample deterministici comuni:
+
+```powershell
+.\scripts\prepare_benchmark_samples.ps1
+```
+
+Lo script legge il dataset pulito:
+
+```text
+/data/processed/flights_2024_clean.parquet
+```
+
+e crea i Parquet usati da tutte le tecnologie:
+
+```text
+/data/samples/flights_clean_100k.parquet
+/data/samples/flights_clean_500k.parquet
+/data/samples/flights_clean_half.parquet
+/data/samples/flights_clean_full.parquet
+```
+
+I run `100k`, `500k` e `half` non applicano piu `LIMIT` dentro le singole tecnologie: Spark SQL, Spark Core e Hive leggono direttamente lo stesso sample gia materializzato.
+
+### Benchmark e grafici
+
+La Fase 7 consolida i timing presenti in `outputs/benchmarks` e genera i grafici per il report.
+
+Generare CSV consolidato e figure SVG:
+
+```powershell
+.\scripts\generate_benchmark_figures.ps1
+```
+
+Output locali:
+
+```text
+outputs/benchmarks/benchmark_summary.csv
+reports/figures/benchmark_analysis_3_1.svg
+reports/figures/benchmark_analysis_3_2.svg
+reports/figures/benchmark_full_comparison.svg
+```
+
+Le dimensioni usate nei grafici sono quelle supportate dagli script di analisi: `100k`, `500k`, `half` e `full`.
 
 ### Stop ambiente Docker
 
@@ -526,7 +570,7 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 ## Prossime fasi
 
-- Fase 7: benchmark e grafici
+- Fase 8: analisi critica e rifinitura report
 
 ## Esecuzione futura su AWS
 

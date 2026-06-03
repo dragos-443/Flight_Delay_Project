@@ -1,0 +1,231 @@
+from __future__ import annotations
+
+import csv
+import html
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+BENCHMARKS_DIR = ROOT / "outputs" / "benchmarks"
+FIGURES_DIR = ROOT / "reports" / "figures"
+SUMMARY_PATH = BENCHMARKS_DIR / "benchmark_summary.csv"
+
+ANALYSIS_LABELS = {
+    "analysis_3_1": "Analisi 3.1",
+    "analysis_3_2": "Analisi 3.2",
+}
+TECHNOLOGY_LABELS = {
+    "spark_sql": "Spark SQL",
+    "spark_core": "Spark Core",
+    "hive": "Hive",
+}
+TECHNOLOGY_COLORS = {
+    "spark_sql": "#2563eb",
+    "spark_core": "#dc2626",
+    "hive": "#16a34a",
+}
+RUN_SIZE_ORDER = ["100k", "500k", "half", "full"]
+TECHNOLOGY_ORDER = ["spark_sql", "spark_core", "hive"]
+ANALYSIS_ORDER = ["analysis_3_1", "analysis_3_2"]
+
+
+def read_timings() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for path in sorted(BENCHMARKS_DIR.glob("analysis_3_*/**/timings.csv")):
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                rows.append(
+                    {
+                        "analysis": row["analysis"],
+                        "technology": row["technology"],
+                        "run_size": row["run_size"],
+                        "input_path": row["input_path"],
+                        "output_path": row["output_path"],
+                        "execution_time_seconds": f"{float(row['execution_time_seconds']):.3f}",
+                        "output_rows": row["output_rows"],
+                        "run_timestamp": row["run_timestamp"],
+                    }
+                )
+
+    if not rows:
+        raise SystemExit(f"Nessun timing CSV trovato in {BENCHMARKS_DIR}")
+
+    return sorted(
+        rows,
+        key=lambda row: (
+            ANALYSIS_ORDER.index(row["analysis"])
+            if row["analysis"] in ANALYSIS_ORDER
+            else len(ANALYSIS_ORDER),
+            RUN_SIZE_ORDER.index(row["run_size"])
+            if row["run_size"] in RUN_SIZE_ORDER
+            else len(RUN_SIZE_ORDER),
+            TECHNOLOGY_ORDER.index(row["technology"])
+            if row["technology"] in TECHNOLOGY_ORDER
+            else len(TECHNOLOGY_ORDER),
+        ),
+    )
+
+
+def write_summary(rows: list[dict[str, str]]) -> None:
+    BENCHMARKS_DIR.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "analysis",
+        "technology",
+        "run_size",
+        "execution_time_seconds",
+        "output_rows",
+        "input_path",
+        "output_path",
+        "run_timestamp",
+    ]
+    with SUMMARY_PATH.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def svg_text(x: float, y: float, text: str, size: int = 13, anchor: str = "start", weight: str = "400") -> str:
+    return (
+        f'<text x="{x:.1f}" y="{y:.1f}" font-family="Arial, sans-serif" '
+        f'font-size="{size}" font-weight="{weight}" text-anchor="{anchor}" '
+        f'fill="#111827">{html.escape(text)}</text>'
+    )
+
+
+def format_seconds(value: float) -> str:
+    return f"{value:.1f}s"
+
+
+def draw_grouped_bar_chart(
+    title: str,
+    subtitle: str,
+    groups: list[str],
+    series: list[str],
+    values: dict[tuple[str, str], float],
+    output_path: Path,
+    group_label_map: dict[str, str] | None = None,
+    series_label_map: dict[str, str] | None = None,
+) -> None:
+    width = 980
+    height = 560
+    margin_left = 82
+    margin_right = 42
+    margin_top = 96
+    margin_bottom = 94
+    plot_width = width - margin_left - margin_right
+    plot_height = height - margin_top - margin_bottom
+    max_value = max(values.values()) if values else 1.0
+    y_max = max_value * 1.18
+    group_width = plot_width / max(len(groups), 1)
+    bar_gap = 8
+    inner_gap = 22
+    bar_width = max(16, (group_width - inner_gap * 2 - bar_gap * (len(series) - 1)) / max(len(series), 1))
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
+        '<rect width="100%" height="100%" fill="#ffffff"/>',
+        svg_text(32, 38, title, size=24, weight="700"),
+        svg_text(32, 64, subtitle, size=14),
+    ]
+
+    for index in range(6):
+        ratio = index / 5
+        y = margin_top + plot_height - ratio * plot_height
+        value = y_max * ratio
+        parts.append(f'<line x1="{margin_left}" y1="{y:.1f}" x2="{width - margin_right}" y2="{y:.1f}" stroke="#e5e7eb"/>')
+        parts.append(svg_text(margin_left - 10, y + 4, format_seconds(value), size=12, anchor="end"))
+
+    parts.append(
+        f'<line x1="{margin_left}" y1="{margin_top + plot_height}" '
+        f'x2="{width - margin_right}" y2="{margin_top + plot_height}" stroke="#9ca3af"/>'
+    )
+    parts.append(
+        f'<line x1="{margin_left}" y1="{margin_top}" '
+        f'x2="{margin_left}" y2="{margin_top + plot_height}" stroke="#9ca3af"/>'
+    )
+
+    for group_index, group in enumerate(groups):
+        group_x = margin_left + group_index * group_width
+        bars_width = len(series) * bar_width + (len(series) - 1) * bar_gap
+        start_x = group_x + (group_width - bars_width) / 2
+
+        for series_index, item in enumerate(series):
+            value = values.get((group, item))
+            if value is None:
+                continue
+            bar_height = (value / y_max) * plot_height
+            x = start_x + series_index * (bar_width + bar_gap)
+            y = margin_top + plot_height - bar_height
+            color = TECHNOLOGY_COLORS.get(item, "#64748b")
+            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_width:.1f}" height="{bar_height:.1f}" fill="{color}"/>')
+            parts.append(svg_text(x + bar_width / 2, y - 6, format_seconds(value), size=11, anchor="middle"))
+
+        label = group_label_map.get(group, group) if group_label_map else group
+        parts.append(svg_text(group_x + group_width / 2, margin_top + plot_height + 28, label, size=13, anchor="middle"))
+
+    legend_x = margin_left
+    legend_y = height - 34
+    for index, item in enumerate(series):
+        x = legend_x + index * 150
+        color = TECHNOLOGY_COLORS.get(item, "#64748b")
+        label = series_label_map.get(item, item) if series_label_map else item
+        parts.append(f'<rect x="{x}" y="{legend_y - 12}" width="14" height="14" fill="{color}"/>')
+        parts.append(svg_text(x + 22, legend_y, label, size=13))
+
+    parts.append(svg_text(width / 2, height - 62, "Dimensione input", size=13, anchor="middle", weight="700"))
+    parts.append(
+        '<text x="18" y="300" font-family="Arial, sans-serif" font-size="13" '
+        'font-weight="700" text-anchor="middle" fill="#111827" transform="rotate(-90 18 300)">Tempo esecuzione</text>'
+    )
+    parts.append("</svg>")
+
+    output_path.write_text("\n".join(parts), encoding="utf-8")
+
+
+def generate_figures(rows: list[dict[str, str]]) -> None:
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
+    for analysis in ANALYSIS_ORDER:
+        filtered = [row for row in rows if row["analysis"] == analysis]
+        values = {
+            (row["run_size"], row["technology"]): float(row["execution_time_seconds"])
+            for row in filtered
+        }
+        draw_grouped_bar_chart(
+            title=f"{ANALYSIS_LABELS[analysis]} - tempi di esecuzione",
+            subtitle="Confronto tra Spark SQL, Spark Core e Hive sui run size disponibili",
+            groups=RUN_SIZE_ORDER,
+            series=TECHNOLOGY_ORDER,
+            values=values,
+            output_path=FIGURES_DIR / f"benchmark_{analysis}.svg",
+            series_label_map=TECHNOLOGY_LABELS,
+        )
+
+    full_values = {
+        (row["analysis"], row["technology"]): float(row["execution_time_seconds"])
+        for row in rows
+        if row["run_size"] == "full"
+    }
+    draw_grouped_bar_chart(
+        title="Confronto sul dataset completo",
+        subtitle="Tempo di esecuzione sul run full per ciascuna analisi",
+        groups=ANALYSIS_ORDER,
+        series=TECHNOLOGY_ORDER,
+        values=full_values,
+        output_path=FIGURES_DIR / "benchmark_full_comparison.svg",
+        group_label_map=ANALYSIS_LABELS,
+        series_label_map=TECHNOLOGY_LABELS,
+    )
+
+
+def main() -> None:
+    rows = read_timings()
+    write_summary(rows)
+    generate_figures(rows)
+    print(f"Benchmark consolidati: {SUMMARY_PATH}")
+    print(f"Grafici generati in: {FIGURES_DIR}")
+
+
+if __name__ == "__main__":
+    main()

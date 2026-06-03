@@ -42,20 +42,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def apply_run_size(df, run_size):
-    if run_size == "full":
-        return df
-
-    if run_size == "100k":
-        return df.limit(100_000)
-
-    if run_size == "500k":
-        return df.limit(500_000)
-
-    total_rows = df.count()
-    return df.limit(total_rows // 2)
-
-
 def spark_round_or_none(value, digits):
     if value is None:
         return None
@@ -126,8 +112,7 @@ def main():
     )
     spark.sparkContext.setLogLevel("WARN")
 
-    clean_df = spark.read.parquet(args.input)
-    analysis_input_df = apply_run_size(clean_df, args.run_size)
+    analysis_input_df = spark.read.parquet(args.input)
 
     result_rdd = (
         analysis_input_df.rdd.map(

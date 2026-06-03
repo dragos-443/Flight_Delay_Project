@@ -446,7 +446,7 @@ Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark S
 
 Hive completa le tre tecnologie obbligatorie del progetto. Rispetto a Spark SQL, la query Hive richiede qualche accorgimento in piu per produrre stringhe ordinate e top 3 cause compatibili con l'output Spark, ma resta dichiarativa e adatta a materializzare tabelle Parquet in HDFS.
 
-I run limitati (`100k`, `500k`, `half`) sono usati come prove progressive di esecuzione. Poiche Hive e Spark possono leggere i file Parquet in ordine fisico diverso quando si usa `LIMIT` senza ordinamento globale, questi run non rappresentano necessariamente lo stesso sottoinsieme di righe tra tecnologie. Il confronto esatto viene quindi eseguito sul dataset `full`, dove l'input e identico, e conferma la coerenza dei risultati.
+Per rendere confrontabili anche i run limitati, i sample benchmark vengono materializzati una sola volta in Parquet prima dell'esecuzione delle analisi. Spark SQL, Spark Core e Hive leggono quindi gli stessi file di input per `100k`, `500k`, `half` e `full`.
 
 ## 6. Analisi 3.3 - Ranking anomalie compagnia-aeroporto
 
@@ -456,20 +456,98 @@ Da completare se il tempo lo permette.
 
 ## 7. Benchmark
 
-Da completare nella Fase 7.
+La Fase 7 consolida i tempi sperimentali prodotti dalle esecuzioni delle analisi 3.1 e 3.2 con Spark SQL, Spark Core e Hive.
 
-Dimensioni previste:
+Prima dei benchmark viene eseguita una fase di preparazione dei sample deterministici:
+
+```powershell
+.\scripts\prepare_benchmark_samples.ps1
+```
+
+Lo script legge il dataset pulito comune e salva i sample Parquet in:
+
+```text
+/data/samples/flights_clean_100k.parquet
+/data/samples/flights_clean_500k.parquet
+/data/samples/flights_clean_half.parquet
+/data/samples/flights_clean_full.parquet
+```
+
+I job delle singole tecnologie non applicano piu `LIMIT` internamente durante i benchmark: il parametro `RunSize` seleziona il file Parquet gia materializzato.
+
+Le dimensioni usate nei benchmark sono:
 
 - 100k righe;
 - 500k righe;
-- 1M righe;
+- meta del dataset processed (`half`);
 - dataset completo.
+
+Il file consolidato dei benchmark e:
+
+```text
+outputs/benchmarks/benchmark_summary.csv
+```
+
+### 7.1 Tempi consolidati
+
+| Analisi | Tecnologia | Run size | Tempo esecuzione (s) | Righe output |
+| --- | --- | --- | ---: | ---: |
+| 3.1 | Spark SQL | 100k | 48.413 | 8.710 |
+| 3.1 | Spark Core | 100k | 19.233 | 8.710 |
+| 3.1 | Hive | 100k | 7.897 | 8.710 |
+| 3.1 | Spark SQL | 500k | 47.513 | 9.681 |
+| 3.1 | Spark Core | 500k | 27.748 | 9.681 |
+| 3.1 | Hive | 500k | 7.685 | 9.681 |
+| 3.1 | Spark SQL | half | 53.072 | 12.180 |
+| 3.1 | Spark Core | half | 86.232 | 12.180 |
+| 3.1 | Hive | half | 14.527 | 12.180 |
+| 3.1 | Spark SQL | full | 52.729 | 13.248 |
+| 3.1 | Spark Core | full | 121.087 | 13.248 |
+| 3.1 | Hive | full | 20.447 | 13.248 |
+| 3.2 | Spark SQL | 100k | 49.498 | 846 |
+| 3.2 | Spark Core | 100k | 27.827 | 846 |
+| 3.2 | Hive | 100k | 16.021 | 846 |
+| 3.2 | Spark SQL | 500k | 48.152 | 992 |
+| 3.2 | Spark Core | 500k | 40.554 | 992 |
+| 3.2 | Hive | 500k | 23.365 | 992 |
+| 3.2 | Spark SQL | half | 47.836 | 6.770 |
+| 3.2 | Spark Core | half | 166.775 | 6.770 |
+| 3.2 | Hive | half | 24.530 | 6.770 |
+| 3.2 | Spark SQL | full | 59.036 | 11.902 |
+| 3.2 | Spark Core | full | 269.791 | 11.902 |
+| 3.2 | Hive | full | 37.650 | 11.902 |
+
+### 7.2 Commento iniziale
+
+Nei benchmark locali Hive mostra i tempi migliori sulle due analisi e su tutte le dimensioni misurate. I run limitati sono ora confrontabili perche tutte le tecnologie leggono gli stessi sample Parquet deterministici.
+
+Spark Core resta competitivo sui sample piccoli, ma il costo della gestione esplicita delle aggregazioni RDD diventa piu evidente al crescere del volume, soprattutto nell'analisi 3.2. Sul dataset `full`, Spark SQL completa l'analisi 3.1 in 52.729 secondi contro 121.087 di Spark Core, mentre sull'analisi 3.2 completa in 59.036 secondi contro 269.791 di Spark Core.
 
 ## 8. Grafici
 
-I grafici saranno salvati in `reports/figures`.
+I grafici sono generati dallo script `src/generate_benchmark_figures.py`, eseguibile tramite:
 
-Da completare nella Fase 7.
+```powershell
+.\scripts\generate_benchmark_figures.ps1
+```
+
+Output generati:
+
+- `reports/figures/benchmark_analysis_3_1.svg`;
+- `reports/figures/benchmark_analysis_3_2.svg`;
+- `reports/figures/benchmark_full_comparison.svg`.
+
+### 8.1 Tempi analisi 3.1
+
+![Benchmark analisi 3.1](figures/benchmark_analysis_3_1.svg)
+
+### 8.2 Tempi analisi 3.2
+
+![Benchmark analisi 3.2](figures/benchmark_analysis_3_2.svg)
+
+### 8.3 Confronto sul dataset completo
+
+![Confronto full dataset](figures/benchmark_full_comparison.svg)
 
 ## 9. Confronto critico
 

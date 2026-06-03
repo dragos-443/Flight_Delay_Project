@@ -157,8 +157,8 @@ Obiettivo: costruire la parte sperimentale.
 
 Task:
 
-- generare sample crescenti: 100k, 500k, 1M, full dataset;
-- creare script di benchmark;
+- generare sample deterministici comuni: 100k, 500k, half, full dataset;
+- creare script di generazione benchmark consolidati;
 - misurare tempi per tecnologia, analisi e dimensione input;
 - salvare risultati in `outputs/benchmarks`;
 - generare grafici in `reports/figures`;
@@ -169,7 +169,7 @@ Criterio di completamento:
 - esistono dati sperimentali confrontabili;
 - il report contiene grafici e commento iniziale.
 
-Stato: **da fare**.
+Stato: **completata**.
 
 ## Fase 8 - Analisi critica e rifinitura report
 
