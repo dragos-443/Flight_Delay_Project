@@ -10,6 +10,8 @@ BENCHMARKS_DIR = ROOT / "outputs" / "benchmarks"
 FIGURES_DIR = ROOT / "reports" / "figures"
 SUMMARY_PATH = BENCHMARKS_DIR / "benchmark_summary.csv"
 SCALABILITY_SUMMARY_PATH = BENCHMARKS_DIR / "scalability_summary.csv"
+AWS_BENCHMARK_SUMMARY_PATH = BENCHMARKS_DIR / "aws_benchmark_summary.csv"
+AWS_SCALABILITY_SUMMARY_PATH = BENCHMARKS_DIR / "aws_scalability_summary.csv"
 
 ANALYSIS_LABELS = {
     "analysis_3_1": "Analisi 3.1",
@@ -50,6 +52,45 @@ def read_timings(timing_glob: str, run_size_order: list[str]) -> list[dict[str, 
                         "run_timestamp": row["run_timestamp"],
                     }
                 )
+
+    return sorted(
+        rows,
+        key=lambda row: (
+            ANALYSIS_ORDER.index(row["analysis"])
+            if row["analysis"] in ANALYSIS_ORDER
+            else len(ANALYSIS_ORDER),
+            run_size_order.index(row["run_size"])
+            if row["run_size"] in run_size_order
+            else len(run_size_order),
+            TECHNOLOGY_ORDER.index(row["technology"])
+            if row["technology"] in TECHNOLOGY_ORDER
+            else len(TECHNOLOGY_ORDER),
+        ),
+    )
+
+
+def read_summary(summary_path: Path, run_size_order: list[str]) -> list[dict[str, str]]:
+    if not summary_path.exists():
+        return []
+
+    rows: list[dict[str, str]] = []
+    with summary_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            if row["run_size"] not in run_size_order:
+                continue
+            rows.append(
+                {
+                    "analysis": row["analysis"],
+                    "technology": row["technology"],
+                    "run_size": row["run_size"],
+                    "input_path": row["input_path"],
+                    "output_path": row["output_path"],
+                    "execution_time_seconds": f"{float(row['execution_time_seconds']):.3f}",
+                    "output_rows": row["output_rows"],
+                    "run_timestamp": row["run_timestamp"],
+                }
+            )
 
     return sorted(
         rows,
@@ -227,15 +268,50 @@ def generate_figures(
 def generate_combined_figures(
     benchmark_rows: list[dict[str, str]],
     scalability_rows: list[dict[str, str]],
+    output_prefix: str = "combined",
+    subtitle: str = "Confronto unificato tra benchmark sample e dataset scalati",
 ) -> None:
     combined_rows = benchmark_rows + scalability_rows
     generate_figures(
         rows=combined_rows,
         groups=COMBINED_ORDER,
-        output_prefix="combined",
-        subtitle="Confronto unificato tra benchmark sample e dataset scalati",
+        output_prefix=output_prefix,
+        subtitle=subtitle,
         x_axis_label="Sample benchmark e fattore scala",
     )
+
+
+def generate_aws_figures() -> None:
+    aws_benchmark_rows = read_summary(AWS_BENCHMARK_SUMMARY_PATH, RUN_SIZE_ORDER)
+    if not aws_benchmark_rows:
+        print(f"Nessun summary AWS benchmark trovato in: {AWS_BENCHMARK_SUMMARY_PATH}")
+        return
+
+    generate_figures(
+        rows=aws_benchmark_rows,
+        groups=RUN_SIZE_ORDER,
+        output_prefix="aws_benchmark",
+        subtitle="Confronto su Amazon EMR tra Spark SQL, Spark Core e Hive",
+        x_axis_label="Dimensione input",
+    )
+    print(f"Grafici benchmark AWS generati da: {AWS_BENCHMARK_SUMMARY_PATH}")
+
+    aws_scalability_rows = read_summary(AWS_SCALABILITY_SUMMARY_PATH, SCALE_ORDER)
+    if aws_scalability_rows:
+        generate_figures(
+            rows=aws_scalability_rows,
+            groups=SCALE_ORDER,
+            output_prefix="aws_scalability",
+            subtitle="Confronto su Amazon EMR tra Spark SQL, Spark Core e Hive sui dataset scalati",
+            x_axis_label="Fattore scala",
+        )
+        generate_combined_figures(
+            aws_benchmark_rows,
+            aws_scalability_rows,
+            output_prefix="aws_combined",
+            subtitle="Confronto AWS EMR unificato tra benchmark sample e dataset scalati",
+        )
+        print(f"Grafici scalabilita AWS generati da: {AWS_SCALABILITY_SUMMARY_PATH}")
 
 
 def main() -> None:
@@ -265,6 +341,8 @@ def main() -> None:
         )
         print(f"Benchmark scalabilita consolidati: {SCALABILITY_SUMMARY_PATH}")
         generate_combined_figures(benchmark_rows, scalability_rows)
+
+    generate_aws_figures()
 
     print(f"Grafici generati in: {FIGURES_DIR}")
 

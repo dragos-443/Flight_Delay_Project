@@ -718,6 +718,18 @@ Scaricarli localmente:
 ./scripts/aws/consolidate_aws_benchmarks.sh
 ```
 
+Da PowerShell locale, in alternativa:
+
+```powershell
+$aws = "C:\Program Files\Amazon\AWSCLIV2\aws.exe"
+$bucket = "flight-delay-5138901"
+$prefix = "flight-delay-project"
+
+& $aws s3 sync "s3://$bucket/$prefix/benchmarks/aws" .\outputs\benchmarks\aws
+python .\src\generate_aws_benchmark_summary.py
+python .\src\generate_benchmark_figures.py
+```
+
 Il confronto finale nel report deve affiancare i tempi locali e AWS, specificando configurazione EMR, dimensione input, tecnologia, analisi, tempo di esecuzione e righe output.
 
 CSV consolidati AWS locali:
@@ -725,4 +737,15 @@ CSV consolidati AWS locali:
 ```text
 outputs/benchmarks/aws_benchmark_summary.csv
 outputs/benchmarks/aws_scalability_summary.csv
+```
+
+Grafici AWS generati localmente:
+
+```text
+reports/figures/aws_benchmark_analysis_3_1.svg
+reports/figures/aws_benchmark_analysis_3_2.svg
+reports/figures/aws_scalability_analysis_3_1.svg
+reports/figures/aws_scalability_analysis_3_2.svg
+reports/figures/aws_combined_analysis_3_1.svg
+reports/figures/aws_combined_analysis_3_2.svg
 ```
