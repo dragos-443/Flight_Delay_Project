@@ -531,9 +531,47 @@ e crea i Parquet usati da tutte le tecnologie:
 
 I run `100k`, `500k` e `half` non applicano piu `LIMIT` dentro le singole tecnologie: Spark SQL, Spark Core e Hive leggono direttamente lo stesso sample gia materializzato.
 
+### Test di efficienza e scalabilita
+
+Per testare la scalabilita su volumi crescenti, creare dataset Parquet materializzati duplicando il dataset processed:
+
+```powershell
+.\scripts\prepare_scalability_datasets.ps1
+```
+
+Output HDFS:
+
+```text
+/data/scaled/flights_clean_1x.parquet
+/data/scaled/flights_clean_2x.parquet
+/data/scaled/flights_clean_4x.parquet
+```
+
+I fattori `1x`, `2x` e `4x` mantengono schema e distribuzione del dataset originale, ma aumentano il numero di righe per osservare la crescita dei tempi. La preparazione dei dataset scalati e separata dai benchmark: le analisi leggono dataset gia salvati in HDFS.
+
+Eseguire i benchmark di scalabilita:
+
+```powershell
+.\scripts\run_analysis_3_1_spark_sql.ps1 -RunSize scale_all
+.\scripts\run_analysis_3_1_spark_core.ps1 -RunSize scale_all
+.\scripts\run_analysis_3_1_hive.ps1 -RunSize scale_all
+.\scripts\run_analysis_3_2_spark_sql.ps1 -RunSize scale_all
+.\scripts\run_analysis_3_2_spark_core.ps1 -RunSize scale_all
+.\scripts\run_analysis_3_2_hive.ps1 -RunSize scale_all
+```
+
+Output HDFS separati dai benchmark sui sample:
+
+```text
+/outputs/scalability/analysis_3_1/<technology>/<scale>/
+/outputs/scalability/analysis_3_2/<technology>/<scale>/
+/outputs/benchmarks/scalability/analysis_3_1/<technology>/timings.csv
+/outputs/benchmarks/scalability/analysis_3_2/<technology>/timings.csv
+```
+
 ### Benchmark e grafici
 
-La Fase 7 consolida i timing presenti in `outputs/benchmarks` e genera i grafici per il report.
+La Fase 7 consolida i timing presenti in `outputs/benchmarks` e genera i grafici per il report. I benchmark sui sample (`100k`, `500k`, `half`, `full`) restano separati dai benchmark di scalabilita (`1x`, `2x`, `4x`).
 
 Generare CSV consolidato e figure SVG:
 
@@ -545,11 +583,16 @@ Output locali:
 
 ```text
 outputs/benchmarks/benchmark_summary.csv
+outputs/benchmarks/scalability_summary.csv
 reports/figures/benchmark_analysis_3_1.svg
 reports/figures/benchmark_analysis_3_2.svg
+reports/figures/scalability_analysis_3_1.svg
+reports/figures/scalability_analysis_3_2.svg
+reports/figures/combined_analysis_3_1.svg
+reports/figures/combined_analysis_3_2.svg
 ```
 
-Le dimensioni usate nei grafici sono quelle supportate dagli script di analisi: `100k`, `500k`, `half` e `full`.
+I grafici benchmark usano `100k`, `500k`, `half` e `full`; i grafici di scalabilita usano `1x`, `2x` e `4x`; i grafici combinati mostrano entrambe le sequenze nello stesso asse X.
 
 ### Stop ambiente Docker
 

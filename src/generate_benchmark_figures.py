@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BENCHMARKS_DIR = ROOT / "outputs" / "benchmarks"
 FIGURES_DIR = ROOT / "reports" / "figures"
 SUMMARY_PATH = BENCHMARKS_DIR / "benchmark_summary.csv"
+SCALABILITY_SUMMARY_PATH = BENCHMARKS_DIR / "scalability_summary.csv"
 
 ANALYSIS_LABELS = {
     "analysis_3_1": "Analisi 3.1",
@@ -25,13 +26,15 @@ TECHNOLOGY_COLORS = {
     "hive": "#16a34a",
 }
 RUN_SIZE_ORDER = ["100k", "500k", "half", "full"]
+SCALE_ORDER = ["1x", "2x", "4x"]
+COMBINED_ORDER = RUN_SIZE_ORDER + SCALE_ORDER
 TECHNOLOGY_ORDER = ["spark_sql", "spark_core", "hive"]
 ANALYSIS_ORDER = ["analysis_3_1", "analysis_3_2"]
 
 
-def read_timings() -> list[dict[str, str]]:
+def read_timings(timing_glob: str, run_size_order: list[str]) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
-    for path in sorted(BENCHMARKS_DIR.glob("analysis_3_*/**/timings.csv")):
+    for path in sorted(BENCHMARKS_DIR.glob(timing_glob)):
         with path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.DictReader(handle)
             for row in reader:
@@ -48,18 +51,15 @@ def read_timings() -> list[dict[str, str]]:
                     }
                 )
 
-    if not rows:
-        raise SystemExit(f"Nessun timing CSV trovato in {BENCHMARKS_DIR}")
-
     return sorted(
         rows,
         key=lambda row: (
             ANALYSIS_ORDER.index(row["analysis"])
             if row["analysis"] in ANALYSIS_ORDER
             else len(ANALYSIS_ORDER),
-            RUN_SIZE_ORDER.index(row["run_size"])
-            if row["run_size"] in RUN_SIZE_ORDER
-            else len(RUN_SIZE_ORDER),
+            run_size_order.index(row["run_size"])
+            if row["run_size"] in run_size_order
+            else len(run_size_order),
             TECHNOLOGY_ORDER.index(row["technology"])
             if row["technology"] in TECHNOLOGY_ORDER
             else len(TECHNOLOGY_ORDER),
@@ -67,7 +67,7 @@ def read_timings() -> list[dict[str, str]]:
     )
 
 
-def write_summary(rows: list[dict[str, str]]) -> None:
+def write_summary(rows: list[dict[str, str]], output_path: Path) -> None:
     BENCHMARKS_DIR.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "analysis",
@@ -79,7 +79,7 @@ def write_summary(rows: list[dict[str, str]]) -> None:
         "output_path",
         "run_timestamp",
     ]
-    with SUMMARY_PATH.open("w", encoding="utf-8", newline="") as handle:
+    with output_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
@@ -106,13 +106,14 @@ def draw_line_chart(
     output_path: Path,
     group_label_map: dict[str, str] | None = None,
     series_label_map: dict[str, str] | None = None,
+    x_axis_label: str = "Dimensione input",
 ) -> None:
     width = 980
-    height = 560
+    height = 600
     margin_left = 82
     margin_right = 42
     margin_top = 96
-    margin_bottom = 94
+    margin_bottom = 128
     plot_width = width - margin_left - margin_right
     plot_height = height - margin_top - margin_bottom
     max_value = max(values.values()) if values else 1.0
@@ -186,7 +187,7 @@ def draw_line_chart(
         parts.append(f'<circle cx="{x + 8}" cy="{legend_y - 7}" r="4" fill="#ffffff" stroke="{color}" stroke-width="2"/>')
         parts.append(svg_text(x + 22, legend_y, label, size=13))
 
-    parts.append(svg_text(width / 2, height - 62, "Dimensione input", size=13, anchor="middle", weight="700"))
+    parts.append(svg_text(width / 2, height - 64, x_axis_label, size=13, anchor="middle", weight="700"))
     parts.append(
         '<text x="18" y="300" font-family="Arial, sans-serif" font-size="13" '
         'font-weight="700" text-anchor="middle" fill="#111827" transform="rotate(-90 18 300)">Tempo esecuzione</text>'
@@ -196,7 +197,13 @@ def draw_line_chart(
     output_path.write_text("\n".join(parts), encoding="utf-8")
 
 
-def generate_figures(rows: list[dict[str, str]]) -> None:
+def generate_figures(
+    rows: list[dict[str, str]],
+    groups: list[str],
+    output_prefix: str,
+    subtitle: str,
+    x_axis_label: str,
+) -> None:
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
     for analysis in ANALYSIS_ORDER:
@@ -207,20 +214,58 @@ def generate_figures(rows: list[dict[str, str]]) -> None:
         }
         draw_line_chart(
             title=f"{ANALYSIS_LABELS[analysis]} - tempi di esecuzione",
-            subtitle="Confronto tra Spark SQL, Spark Core e Hive sui run size disponibili",
-            groups=RUN_SIZE_ORDER,
+            subtitle=subtitle,
+            groups=groups,
             series=TECHNOLOGY_ORDER,
             values=values,
-            output_path=FIGURES_DIR / f"benchmark_{analysis}.svg",
+            output_path=FIGURES_DIR / f"{output_prefix}_{analysis}.svg",
             series_label_map=TECHNOLOGY_LABELS,
+            x_axis_label=x_axis_label,
         )
 
 
+def generate_combined_figures(
+    benchmark_rows: list[dict[str, str]],
+    scalability_rows: list[dict[str, str]],
+) -> None:
+    combined_rows = benchmark_rows + scalability_rows
+    generate_figures(
+        rows=combined_rows,
+        groups=COMBINED_ORDER,
+        output_prefix="combined",
+        subtitle="Confronto unificato tra benchmark sample e dataset scalati",
+        x_axis_label="Sample benchmark e fattore scala",
+    )
+
+
 def main() -> None:
-    rows = read_timings()
-    write_summary(rows)
-    generate_figures(rows)
+    benchmark_rows = read_timings("analysis_3_*/**/timings.csv", RUN_SIZE_ORDER)
+    if not benchmark_rows:
+        raise SystemExit(f"Nessun timing CSV benchmark trovato in {BENCHMARKS_DIR}")
+
+    write_summary(benchmark_rows, SUMMARY_PATH)
+    generate_figures(
+        rows=benchmark_rows,
+        groups=RUN_SIZE_ORDER,
+        output_prefix="benchmark",
+        subtitle="Confronto tra Spark SQL, Spark Core e Hive sui run size disponibili",
+        x_axis_label="Dimensione input",
+    )
     print(f"Benchmark consolidati: {SUMMARY_PATH}")
+
+    scalability_rows = read_timings("scalability/analysis_3_*/**/timings.csv", SCALE_ORDER)
+    if scalability_rows:
+        write_summary(scalability_rows, SCALABILITY_SUMMARY_PATH)
+        generate_figures(
+            rows=scalability_rows,
+            groups=SCALE_ORDER,
+            output_prefix="scalability",
+            subtitle="Confronto tra Spark SQL, Spark Core e Hive sui dataset scalati",
+            x_axis_label="Fattore scala",
+        )
+        print(f"Benchmark scalabilita consolidati: {SCALABILITY_SUMMARY_PATH}")
+        generate_combined_figures(benchmark_rows, scalability_rows)
+
     print(f"Grafici generati in: {FIGURES_DIR}")
 
 

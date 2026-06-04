@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from pyspark.sql import SparkSession
 
 
-VALID_RUN_SIZES = {"100k", "500k", "half", "full"}
+VALID_RUN_SIZES = {"100k", "500k", "half", "full", "1x", "2x", "4x"}
 
 
 def parse_args():

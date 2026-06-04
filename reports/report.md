@@ -523,6 +523,61 @@ Nei benchmark locali Hive mostra i tempi migliori sulle due analisi e su tutte l
 
 Spark Core resta competitivo sui sample piccoli, ma il costo della gestione esplicita delle aggregazioni RDD diventa piu evidente al crescere del volume, soprattutto nell'analisi 3.2. Sul dataset `full`, Spark SQL completa l'analisi 3.1 in 52.729 secondi contro 121.087 di Spark Core, mentre sull'analisi 3.2 completa in 59.036 secondi contro 269.791 di Spark Core.
 
+### 7.3 Test di efficienza e scalabilita
+
+Per valutare la scalabilita, il dataset processed viene duplicato artificialmente e materializzato in HDFS prima dell'esecuzione delle analisi. I fattori usati sono:
+
+- `1x`: dataset processed originale;
+- `2x`: dataset duplicato;
+- `4x`: dataset quadruplicato.
+
+La preparazione e separata dai tempi di benchmark, quindi le analisi leggono direttamente i Parquet scalati gia disponibili:
+
+```powershell
+.\scripts\prepare_scalability_datasets.ps1
+```
+
+Output HDFS:
+
+```text
+/data/scaled/flights_clean_1x.parquet
+/data/scaled/flights_clean_2x.parquet
+/data/scaled/flights_clean_4x.parquet
+```
+
+I benchmark di scalabilita vengono eseguiti con `RunSize scale_all` sugli script Spark SQL, Spark Core e Hive delle analisi 3.1 e 3.2. Gli output sono separati dai benchmark sui sample:
+
+```text
+/outputs/scalability/analysis_3_1/<technology>/<scale>/
+/outputs/scalability/analysis_3_2/<technology>/<scale>/
+outputs/benchmarks/scalability_summary.csv
+```
+
+La duplicazione non cambia la distribuzione statistica dei dati, ma aumenta il volume di input per osservare la crescita dei tempi di esecuzione. I conteggi attesi sono circa 7.061.582 righe per `1x`, 14.123.164 per `2x` e 28.246.328 per `4x`.
+
+Tempi consolidati del test di scalabilita:
+
+| Analisi | Tecnologia | Scala | Tempo esecuzione (s) | Righe output |
+| --- | --- | --- | ---: | ---: |
+| 3.1 | Spark SQL | 1x | 128.245 | 13.248 |
+| 3.1 | Spark Core | 1x | 161.674 | 13.248 |
+| 3.1 | Hive | 1x | 30.610 | 13.248 |
+| 3.1 | Spark SQL | 2x | 99.674 | 13.248 |
+| 3.1 | Spark Core | 2x | 262.985 | 13.248 |
+| 3.1 | Hive | 2x | 38.348 | 13.248 |
+| 3.1 | Spark SQL | 4x | 109.920 | 13.248 |
+| 3.1 | Spark Core | 4x | 492.724 | 13.248 |
+| 3.1 | Hive | 4x | 64.406 | 13.248 |
+| 3.2 | Spark SQL | 1x | 68.401 | 11.902 |
+| 3.2 | Spark Core | 1x | 244.714 | 11.902 |
+| 3.2 | Hive | 1x | 34.472 | 11.902 |
+| 3.2 | Spark SQL | 2x | 73.634 | 11.902 |
+| 3.2 | Spark Core | 2x | 453.049 | 11.902 |
+| 3.2 | Hive | 2x | 47.642 | 11.902 |
+| 3.2 | Spark SQL | 4x | 69.975 | 11.902 |
+| 3.2 | Spark Core | 4x | 834.937 | 11.902 |
+| 3.2 | Hive | 4x | 78.349 | 11.902 |
+
 ## 8. Grafici
 
 I grafici sono generati dallo script `src/generate_benchmark_figures.py`, eseguibile tramite:
@@ -534,7 +589,11 @@ I grafici sono generati dallo script `src/generate_benchmark_figures.py`, esegui
 Output generati:
 
 - `reports/figures/benchmark_analysis_3_1.svg`;
-- `reports/figures/benchmark_analysis_3_2.svg`.
+- `reports/figures/benchmark_analysis_3_2.svg`;
+- `reports/figures/scalability_analysis_3_1.svg`, dopo i run `scale_all`;
+- `reports/figures/scalability_analysis_3_2.svg`, dopo i run `scale_all`;
+- `reports/figures/combined_analysis_3_1.svg`, dopo i run `scale_all`;
+- `reports/figures/combined_analysis_3_2.svg`, dopo i run `scale_all`.
 
 ### 8.1 Tempi analisi 3.1
 
@@ -543,6 +602,22 @@ Output generati:
 ### 8.2 Tempi analisi 3.2
 
 ![Benchmark analisi 3.2](figures/benchmark_analysis_3_2.svg)
+
+### 8.3 Scalabilita analisi 3.1
+
+![Scalabilita analisi 3.1](figures/scalability_analysis_3_1.svg)
+
+### 8.4 Scalabilita analisi 3.2
+
+![Scalabilita analisi 3.2](figures/scalability_analysis_3_2.svg)
+
+### 8.5 Benchmark e scalabilita analisi 3.1
+
+![Benchmark e scalabilita analisi 3.1](figures/combined_analysis_3_1.svg)
+
+### 8.6 Benchmark e scalabilita analisi 3.2
+
+![Benchmark e scalabilita analisi 3.2](figures/combined_analysis_3_2.svg)
 
 ## 9. Confronto critico
 

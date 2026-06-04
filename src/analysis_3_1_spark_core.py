@@ -11,7 +11,7 @@ from pyspark.sql.types import (
 )
 
 
-VALID_RUN_SIZES = {"100k", "500k", "half", "full"}
+VALID_RUN_SIZES = {"100k", "500k", "half", "full", "1x", "2x", "4x"}
 
 
 RESULT_SCHEMA = StructType(

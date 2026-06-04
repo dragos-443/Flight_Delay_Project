@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("100k", "500k", "half", "full", "all")]
+    [ValidateSet("100k", "500k", "half", "full", "all", "1x", "2x", "4x", "scale_all")]
     [string]$RunSize = "full",
     [string]$InputPath = $null,
     [string]$OutputRoot = $null,
@@ -68,7 +68,11 @@ function Save-TimingRow {
         [string]$RunTimestamp
     )
 
-    $localDir = Join-Path "outputs" "benchmarks\analysis_3_1\spark_core"
+    if ($TimingPath -like "/outputs/benchmarks/scalability/*") {
+        $localDir = Join-Path "outputs" "benchmarks\scalability\analysis_3_1\spark_core"
+    } else {
+        $localDir = Join-Path "outputs" "benchmarks\analysis_3_1\spark_core"
+    }
     New-Item -ItemType Directory -Force -Path $localDir | Out-Null
     $localTimingPath = Join-Path $localDir "timings.csv"
 
@@ -116,12 +120,20 @@ function Save-TimingRow {
 $hdfsNameNode = Read-DotEnvValue ".env" "HDFS_NAMENODE"
 $hdfsProcessedDir = Read-DotEnvValue ".env" "HDFS_PROCESSED_DIR"
 $hdfsSamplesDir = Read-DotEnvValue ".env" "HDFS_SAMPLES_DIR"
+$hdfsScaledDir = Read-DotEnvValue ".env" "HDFS_SCALED_DIR"
 $sparkMasterUrl = Read-DotEnvValue ".env" "SPARK_MASTER_URL"
 
 if (-not $hdfsNameNode) { $hdfsNameNode = "hdfs://namenode:8020" }
 if (-not $hdfsProcessedDir) { $hdfsProcessedDir = "/data/processed" }
 if (-not $hdfsSamplesDir) { $hdfsSamplesDir = "/data/samples" }
+if (-not $hdfsScaledDir) { $hdfsScaledDir = "/data/scaled" }
 if (-not $sparkMasterUrl) { $sparkMasterUrl = "spark://spark-master:7077" }
+
+function Test-ScaleRunSize {
+    param([string]$CurrentRunSize)
+
+    return $CurrentRunSize -in @("1x", "2x", "4x")
+}
 
 function Resolve-InputPath {
     param([string]$CurrentRunSize)
@@ -130,21 +142,44 @@ function Resolve-InputPath {
         return $InputPath
     }
 
+    if (Test-ScaleRunSize $CurrentRunSize) {
+        return "$hdfsNameNode$hdfsScaledDir/flights_clean_$CurrentRunSize.parquet"
+    }
+
     return "$hdfsNameNode$hdfsSamplesDir/flights_clean_$CurrentRunSize.parquet"
 }
 
 if (-not $OutputRoot) {
-    $OutputRoot = "$hdfsNameNode/outputs/analysis_3_1/spark_core"
+    if ($RunSize -eq "scale_all" -or (Test-ScaleRunSize $RunSize)) {
+        $OutputRoot = "$hdfsNameNode/outputs/scalability/analysis_3_1/spark_core"
+    } else {
+        $OutputRoot = "$hdfsNameNode/outputs/analysis_3_1/spark_core"
+    }
 }
 
 if (-not $BenchmarkRoot) {
-    $BenchmarkRoot = "/outputs/benchmarks/analysis_3_1/spark_core"
+    if ($RunSize -eq "scale_all" -or (Test-ScaleRunSize $RunSize)) {
+        $BenchmarkRoot = "/outputs/benchmarks/scalability/analysis_3_1/spark_core"
+    } else {
+        $BenchmarkRoot = "/outputs/benchmarks/analysis_3_1/spark_core"
+    }
 }
 
 $runSizes = @($RunSize)
 if ($RunSize -eq "all") {
     $runSizes = @("100k", "500k", "half", "full")
     $localTimingPath = Join-Path "outputs" "benchmarks\analysis_3_1\spark_core\timings.csv"
+    Remove-Item -LiteralPath $localTimingPath -ErrorAction SilentlyContinue
+    Invoke-DockerChecked @(
+        "compose", "--env-file", ".env",
+        "exec", "-T", "namenode",
+        "hdfs", "dfs", "-rm", "-f",
+        "$BenchmarkRoot/timings.csv"
+    ) | Out-Null
+}
+if ($RunSize -eq "scale_all") {
+    $runSizes = @("1x", "2x", "4x")
+    $localTimingPath = Join-Path "outputs" "benchmarks\scalability\analysis_3_1\spark_core\timings.csv"
     Remove-Item -LiteralPath $localTimingPath -ErrorAction SilentlyContinue
     Invoke-DockerChecked @(
         "compose", "--env-file", ".env",
@@ -201,7 +236,11 @@ foreach ($currentRunSize in $runSizes) {
         -RunTimestamp $runTimestamp
 
     if ($CompareWithSparkSql) {
-        $sparkSqlParquetPath = "$hdfsNameNode/outputs/analysis_3_1/spark_sql/$currentRunSize/parquet"
+        if (Test-ScaleRunSize $currentRunSize) {
+            $sparkSqlParquetPath = "$hdfsNameNode/outputs/scalability/analysis_3_1/spark_sql/$currentRunSize/parquet"
+        } else {
+            $sparkSqlParquetPath = "$hdfsNameNode/outputs/analysis_3_1/spark_sql/$currentRunSize/parquet"
+        }
         Invoke-DockerChecked @(
             "compose", "--env-file", ".env",
             "exec", "-T", "spark-master",

@@ -12,7 +12,7 @@ from pyspark.sql.types import (
 )
 
 
-VALID_RUN_SIZES = {"100k", "500k", "half", "full"}
+VALID_RUN_SIZES = {"100k", "500k", "half", "full", "1x", "2x", "4x"}
 VALID_DELAY_BANDS = {"low", "medium", "high"}
 DELAY_BAND_ORDER = {"low": 1, "medium": 2, "high": 3}
 
@@ -116,7 +116,7 @@ def main():
     analysis_input_df = spark.read.parquet(args.input)
     banded_rdd = analysis_input_df.rdd.filter(
         lambda row: row.departure_delay_band in VALID_DELAY_BANDS
-    ).cache()
+    )
 
     band_metrics_rdd = (
         banded_rdd.map(
