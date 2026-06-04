@@ -534,8 +534,7 @@ I grafici sono generati dallo script `src/generate_benchmark_figures.py`, esegui
 Output generati:
 
 - `reports/figures/benchmark_analysis_3_1.svg`;
-- `reports/figures/benchmark_analysis_3_2.svg`;
-- `reports/figures/benchmark_full_comparison.svg`.
+- `reports/figures/benchmark_analysis_3_2.svg`.
 
 ### 8.1 Tempi analisi 3.1
 
@@ -544,10 +543,6 @@ Output generati:
 ### 8.2 Tempi analisi 3.2
 
 ![Benchmark analisi 3.2](figures/benchmark_analysis_3_2.svg)
-
-### 8.3 Confronto sul dataset completo
-
-![Confronto full dataset](figures/benchmark_full_comparison.svg)
 
 ## 9. Confronto critico
 

@@ -547,7 +547,6 @@ Output locali:
 outputs/benchmarks/benchmark_summary.csv
 reports/figures/benchmark_analysis_3_1.svg
 reports/figures/benchmark_analysis_3_2.svg
-reports/figures/benchmark_full_comparison.svg
 ```
 
 Le dimensioni usate nei grafici sono quelle supportate dagli script di analisi: `100k`, `500k`, `half` e `full`.

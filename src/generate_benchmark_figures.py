@@ -97,7 +97,7 @@ def format_seconds(value: float) -> str:
     return f"{value:.1f}s"
 
 
-def draw_grouped_bar_chart(
+def draw_line_chart(
     title: str,
     subtitle: str,
     groups: list[str],
@@ -117,10 +117,12 @@ def draw_grouped_bar_chart(
     plot_height = height - margin_top - margin_bottom
     max_value = max(values.values()) if values else 1.0
     y_max = max_value * 1.18
-    group_width = plot_width / max(len(groups), 1)
-    bar_gap = 8
-    inner_gap = 22
-    bar_width = max(16, (group_width - inner_gap * 2 - bar_gap * (len(series) - 1)) / max(len(series), 1))
+    x_step = plot_width / max(len(groups) - 1, 1)
+
+    def point_for(group_index: int, value: float) -> tuple[float, float]:
+        x = margin_left + group_index * x_step if len(groups) > 1 else margin_left + plot_width / 2
+        y = margin_top + plot_height - (value / y_max) * plot_height
+        return x, y
 
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
@@ -146,23 +148,33 @@ def draw_grouped_bar_chart(
     )
 
     for group_index, group in enumerate(groups):
-        group_x = margin_left + group_index * group_width
-        bars_width = len(series) * bar_width + (len(series) - 1) * bar_gap
-        start_x = group_x + (group_width - bars_width) / 2
+        x = margin_left + group_index * x_step if len(groups) > 1 else margin_left + plot_width / 2
+        label = group_label_map.get(group, group) if group_label_map else group
+        parts.append(f'<line x1="{x:.1f}" y1="{margin_top + plot_height}" x2="{x:.1f}" y2="{margin_top + plot_height + 6}" stroke="#9ca3af"/>')
+        parts.append(svg_text(x, margin_top + plot_height + 28, label, size=13, anchor="middle"))
 
-        for series_index, item in enumerate(series):
+    for series_index, item in enumerate(series):
+        color = TECHNOLOGY_COLORS.get(item, "#64748b")
+        points: list[tuple[float, float, float]] = []
+        for group_index, group in enumerate(groups):
             value = values.get((group, item))
             if value is None:
                 continue
-            bar_height = (value / y_max) * plot_height
-            x = start_x + series_index * (bar_width + bar_gap)
-            y = margin_top + plot_height - bar_height
-            color = TECHNOLOGY_COLORS.get(item, "#64748b")
-            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_width:.1f}" height="{bar_height:.1f}" fill="{color}"/>')
-            parts.append(svg_text(x + bar_width / 2, y - 6, format_seconds(value), size=11, anchor="middle"))
+            x, y = point_for(group_index, value)
+            points.append((x, y, value))
 
-        label = group_label_map.get(group, group) if group_label_map else group
-        parts.append(svg_text(group_x + group_width / 2, margin_top + plot_height + 28, label, size=13, anchor="middle"))
+        if not points:
+            continue
+
+        path_data = " ".join(
+            f"{'M' if index == 0 else 'L'} {x:.1f} {y:.1f}"
+            for index, (x, y, _) in enumerate(points)
+        )
+        parts.append(f'<path d="{path_data}" fill="none" stroke="{color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>')
+
+        for x, y, value in points:
+            parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="#ffffff" stroke="{color}" stroke-width="3"/>')
+            parts.append(svg_text(x, y - 12, format_seconds(value), size=11, anchor="middle"))
 
     legend_x = margin_left
     legend_y = height - 34
@@ -170,7 +182,8 @@ def draw_grouped_bar_chart(
         x = legend_x + index * 150
         color = TECHNOLOGY_COLORS.get(item, "#64748b")
         label = series_label_map.get(item, item) if series_label_map else item
-        parts.append(f'<rect x="{x}" y="{legend_y - 12}" width="14" height="14" fill="{color}"/>')
+        parts.append(f'<line x1="{x}" y1="{legend_y - 7}" x2="{x + 16}" y2="{legend_y - 7}" stroke="{color}" stroke-width="3" stroke-linecap="round"/>')
+        parts.append(f'<circle cx="{x + 8}" cy="{legend_y - 7}" r="4" fill="#ffffff" stroke="{color}" stroke-width="2"/>')
         parts.append(svg_text(x + 22, legend_y, label, size=13))
 
     parts.append(svg_text(width / 2, height - 62, "Dimensione input", size=13, anchor="middle", weight="700"))
@@ -192,7 +205,7 @@ def generate_figures(rows: list[dict[str, str]]) -> None:
             (row["run_size"], row["technology"]): float(row["execution_time_seconds"])
             for row in filtered
         }
-        draw_grouped_bar_chart(
+        draw_line_chart(
             title=f"{ANALYSIS_LABELS[analysis]} - tempi di esecuzione",
             subtitle="Confronto tra Spark SQL, Spark Core e Hive sui run size disponibili",
             groups=RUN_SIZE_ORDER,
@@ -201,22 +214,6 @@ def generate_figures(rows: list[dict[str, str]]) -> None:
             output_path=FIGURES_DIR / f"benchmark_{analysis}.svg",
             series_label_map=TECHNOLOGY_LABELS,
         )
-
-    full_values = {
-        (row["analysis"], row["technology"]): float(row["execution_time_seconds"])
-        for row in rows
-        if row["run_size"] == "full"
-    }
-    draw_grouped_bar_chart(
-        title="Confronto sul dataset completo",
-        subtitle="Tempo di esecuzione sul run full per ciascuna analisi",
-        groups=ANALYSIS_ORDER,
-        series=TECHNOLOGY_ORDER,
-        values=full_values,
-        output_path=FIGURES_DIR / "benchmark_full_comparison.svg",
-        group_label_map=ANALYSIS_LABELS,
-        series_label_map=TECHNOLOGY_LABELS,
-    )
 
 
 def main() -> None:
