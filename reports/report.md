@@ -625,7 +625,81 @@ Aspetti da discutere:
 - scalabilita;
 - impatto di shuffle, aggregazioni e preparazione dati.
 
-## 9. Riproducibilita
+## 9. Esecuzione su AWS Academy
+
+Per soddisfare la raccomandazione della traccia di confrontare, quando possibile, ambiente locale e cluster, il progetto e stato predisposto anche per l'esecuzione su Amazon EMR in AWS Academy.
+
+La scelta iniziale e EMR perche fornisce direttamente Spark, Hive, Hadoop/YARN e integrazione con S3. Se EMR non fosse disponibile nel Learner Lab, la soluzione alternativa sara una macchina EC2 configurata manualmente, ma questa non viene inclusa nella prima procedura.
+
+Le dipendenze operative sono AWS CLI, Bash, Python 3 e un cluster EMR con Hadoop, Spark e Hive abilitati.
+
+Configurazione minima consigliata per contenere il credito:
+
+- cluster EMR con Hadoop, Spark e Hive;
+- 1 nodo master e 1 nodo core;
+- istanze `m5.xlarge` se disponibili, oppure `m5.large` per una prova economica;
+- EBS 32-64 GB per nodo;
+- terminazione del cluster subito dopo i benchmark.
+
+Lo storage AWS usa S3 con percorsi separati da quelli locali:
+
+```text
+s3://<bucket>/<prefix>/raw/
+s3://<bucket>/<prefix>/processed/
+s3://<bucket>/<prefix>/samples/
+s3://<bucket>/<prefix>/scaled/
+s3://<bucket>/<prefix>/outputs/aws/
+s3://<bucket>/<prefix>/benchmarks/aws/
+s3://<bucket>/<prefix>/logs/
+```
+
+Gli script bash in `scripts/aws/` permettono di caricare codice e dataset, preparare il dataset clean, creare sample e dataset scalati, eseguire Spark SQL, Spark Core e Hive e salvare i timing AWS in CSV dedicati. La procedura completa e documentata in `docs/aws_emr.md`.
+
+Comandi principali sul nodo master EMR:
+
+```bash
+export S3_BUCKET="nome-bucket"
+export S3_PREFIX="flight-delay-project"
+aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/src" ./src
+aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/scripts/aws" ./scripts/aws
+chmod +x scripts/aws/*.sh
+
+./scripts/aws/prepare_clean_dataset.sh
+./scripts/aws/prepare_benchmark_samples.sh
+./scripts/aws/prepare_scalability_datasets.sh
+
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql all
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core all
+./scripts/aws/run_hive_analysis.sh analysis_3_1 all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_sql all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_core all
+./scripts/aws/run_hive_analysis.sh analysis_3_2 all
+
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core scale_all
+./scripts/aws/run_hive_analysis.sh analysis_3_1 scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_sql scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_core scale_all
+./scripts/aws/run_hive_analysis.sh analysis_3_2 scale_all
+```
+
+I tempi AWS vengono salvati in:
+
+```text
+s3://<bucket>/<prefix>/benchmarks/aws/<analysis>/<technology>/timings.csv
+s3://<bucket>/<prefix>/benchmarks/aws/scalability/<analysis>/<technology>/timings.csv
+```
+
+Una volta scaricati nel repository locale, possono essere consolidati in:
+
+```text
+outputs/benchmarks/aws_benchmark_summary.csv
+outputs/benchmarks/aws_scalability_summary.csv
+```
+
+Dopo l'esecuzione su EMR, il confronto finale dovra affiancare i tempi locali e AWS per analisi, tecnologia e dimensione input. Nel commento critico andranno esplicitati l'overhead del cluster, l'uso di S3 al posto di HDFS locale, il comportamento sui sample piccoli e il vantaggio atteso dei run piu grandi.
+
+## 10. Riproducibilita
 
 La Fase 1 introduce un ambiente locale basato su Docker Compose con:
 
@@ -656,6 +730,6 @@ Elementi previsti:
 - generazione benchmark;
 - generazione report PDF.
 
-## 10. Repository GitHub
+## 11. Repository GitHub
 
 Da aggiornare con il link al repository finale.

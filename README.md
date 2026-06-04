@@ -38,7 +38,9 @@ reports/
   report.md     relazione in sviluppo
 docs/
   roadmap.md    roadmap incrementale
+  aws_emr.md    procedura AWS Academy con EMR
 scripts/        script di setup, esecuzione e benchmark
+  aws/          script bash per esecuzione su Amazon EMR
 src/            codice sorgente delle analisi
 docker/         configurazioni Docker e servizi di supporto
 ```
@@ -606,8 +608,121 @@ Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metast
 
 - Fase 8: analisi critica e rifinitura report
 
-## Esecuzione futura su AWS
+## Esecuzione su AWS Academy con EMR
 
-La struttura del progetto evita path assoluti e separa configurazioni, dati e codice per facilitare una futura esecuzione su cluster Spark/Hadoop in ambiente cloud. Le istruzioni AWS saranno aggiunte quando verra definito l'ambiente di esecuzione.
+La procedura cloud usa Amazon EMR come prima scelta, perche integra Spark, Hive, Hadoop/YARN e accesso a S3. Le istruzioni complete sono in [docs/aws_emr.md](docs/aws_emr.md).
 
-Per ora viene mantenuta una configurazione locale semplice. Quando si passera ad AWS, verra aggiunta una configurazione separata invece di forzare tutte le differenze dentro il `.env` locale.
+Dipendenze: AWS CLI, Bash, Python 3 e un cluster EMR con Hadoop, Spark e Hive abilitati.
+
+### Configurazione consigliata
+
+Per ridurre il consumo del credito AWS Academy:
+
+- cluster EMR con Hadoop, Spark e Hive;
+- 1 nodo master e 1 nodo core;
+- istanze `m5.xlarge` se disponibili, oppure `m5.large` per una prova piu economica;
+- EBS 32-64 GB per nodo;
+- terminare il cluster appena completati i benchmark.
+
+### Upload su S3
+
+Impostare bucket e prefisso:
+
+```bash
+export S3_BUCKET="nome-bucket"
+export S3_PREFIX="flight-delay-project"
+```
+
+Caricare codice, script AWS e dataset raw:
+
+```bash
+aws s3 mb "s3://${S3_BUCKET}"
+./scripts/aws/upload_project_to_s3.sh data/raw/flight_data_2024.csv
+```
+
+Layout S3 usato dagli script:
+
+```text
+s3://<bucket>/<prefix>/raw/
+s3://<bucket>/<prefix>/processed/
+s3://<bucket>/<prefix>/samples/
+s3://<bucket>/<prefix>/scaled/
+s3://<bucket>/<prefix>/outputs/aws/
+s3://<bucket>/<prefix>/benchmarks/aws/
+s3://<bucket>/<prefix>/logs/
+```
+
+### Preparazione sul nodo master EMR
+
+Dopo il collegamento SSH al nodo master:
+
+```bash
+export S3_BUCKET="nome-bucket"
+export S3_PREFIX="flight-delay-project"
+aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/src" ./src
+aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/scripts/aws" ./scripts/aws
+chmod +x scripts/aws/*.sh
+```
+
+Preparare dataset clean, sample e dataset scalati. Questi tempi non fanno parte dei benchmark:
+
+```bash
+./scripts/aws/prepare_clean_dataset.sh
+./scripts/aws/prepare_benchmark_samples.sh
+./scripts/aws/prepare_scalability_datasets.sh
+```
+
+### Benchmark AWS
+
+Eseguire prima un test rapido:
+
+```bash
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql 100k
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core 100k
+./scripts/aws/run_hive_analysis.sh analysis_3_1 100k
+```
+
+Eseguire tutti i benchmark sample:
+
+```bash
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql all
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core all
+./scripts/aws/run_hive_analysis.sh analysis_3_1 all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_sql all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_core all
+./scripts/aws/run_hive_analysis.sh analysis_3_2 all
+```
+
+Eseguire i benchmark di scalabilita:
+
+```bash
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core scale_all
+./scripts/aws/run_hive_analysis.sh analysis_3_1 scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_sql scale_all
+./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_core scale_all
+./scripts/aws/run_hive_analysis.sh analysis_3_2 scale_all
+```
+
+I timing AWS vengono salvati in CSV separati:
+
+```text
+s3://<bucket>/<prefix>/benchmarks/aws/<analysis>/<technology>/timings.csv
+s3://<bucket>/<prefix>/benchmarks/aws/scalability/<analysis>/<technology>/timings.csv
+```
+
+Scaricarli localmente:
+
+```bash
+./scripts/aws/download_aws_benchmarks.sh
+./scripts/aws/consolidate_aws_benchmarks.sh
+```
+
+Il confronto finale nel report deve affiancare i tempi locali e AWS, specificando configurazione EMR, dimensione input, tecnologia, analisi, tempo di esecuzione e righe output.
+
+CSV consolidati AWS locali:
+
+```text
+outputs/benchmarks/aws_benchmark_summary.csv
+outputs/benchmarks/aws_scalability_summary.csv
+```
