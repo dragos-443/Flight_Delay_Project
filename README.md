@@ -18,20 +18,12 @@ Tecnologie obbligatorie:
 - Spark Core
 - Hive
 
-Estensione opzionale:
-
-- MapReduce tramite Python e Hadoop Streaming
-
 ## Analisi previste
 
 Analisi minime:
 
 - 3.1 Statistiche delle compagnie aeree
 - 3.2 Report dei ritardi per aeroporto e periodo temporale
-
-Analisi opzionale:
-
-- 3.3 Ranking delle coppie compagnia-aeroporto con comportamento anomalo nei ritardi
 
 ## Struttura del repository
 

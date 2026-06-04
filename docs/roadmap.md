@@ -192,38 +192,3 @@ Criterio di completamento:
 
 Stato: **da fare**.
 
-## Fase 9 - Estensione opzionale: Analisi 3.3
-
-Obiettivo: aggiungere il ranking anomalie compagnia-aeroporto.
-
-Task:
-
-- implementare 3.3 in Spark SQL;
-- replicare in Spark Core;
-- replicare in Hive se il tempo lo permette;
-- aggiungere output, benchmark e report.
-
-Criterio di completamento:
-
-- progetto copre tutte le analisi della traccia.
-
-Stato: **opzionale**.
-
-## Fase 10 - Estensione opzionale: MapReduce Python
-
-Obiettivo: aggiungere la quarta tecnologia.
-
-Task:
-
-- predisporre Hadoop Streaming;
-- implementare mapper e reducer Python per 3.1;
-- implementare mapper e reducer Python per 3.2 se il tempo lo permette;
-- confrontare risultati e tempi con le altre tecnologie;
-- aggiornare report.
-
-Criterio di completamento:
-
-- progetto include anche MapReduce;
-- confronto tecnologico piu completo.
-
-Stato: **opzionale**.

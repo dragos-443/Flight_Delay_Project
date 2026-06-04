@@ -2,7 +2,7 @@
 
 ## 1. Introduzione
 
-Questo report documenta lo sviluppo incrementale del progetto sul Flight Delay Dataset 2024, con confronto tra Spark SQL, Spark Core e Hive. MapReduce tramite Python e Hadoop Streaming e previsto come estensione opzionale.
+Questo report documenta lo sviluppo incrementale del progetto sul Flight Delay Dataset 2024, con confronto tra Spark SQL, Spark Core e Hive.
 
 ## 2. Dataset
 
@@ -45,7 +45,7 @@ Il formato Parquet viene scelto come input principale delle analisi perche conse
 
 ### 3.1 Colonne mantenute
 
-Le colonne mantenute coprono tutte le informazioni necessarie alle analisi 3.1, 3.2 e 3.3:
+Le colonne mantenute coprono tutte le informazioni necessarie alle analisi 3.1 e 3.2:
 
 - identificazione temporale: `year`, `month`, `day_of_month`, `day_of_week`, `fl_date`;
 - compagnia e volo: `op_unique_carrier`, `op_carrier_fl_num`;
@@ -69,7 +69,7 @@ Sono state eliminate solo colonne non richieste dalle analisi previste:
 - `crs_dep_time` e `dep_time`, perche le analisi usano mese, aeroporto, compagnia e ritardo aggregato, non l'orario del giorno;
 - `taxi_out`, `wheels_off`, `wheels_on`, `taxi_in`, perche descrivono fasi operative del volo non richieste;
 - `crs_arr_time` e `arr_time`, perche le analisi usano `arr_delay`, non l'orario effettivo di arrivo;
-- `crs_elapsed_time`, `actual_elapsed_time`, `air_time`, utili per analisi di durata ma non per statistiche compagnia, report ritardi o ranking anomalie.
+- `crs_elapsed_time`, `actual_elapsed_time`, `air_time`, utili per analisi di durata ma non per statistiche compagnia o report ritardi.
 
 Non viene eliminata nessuna colonna relativa a compagnia, aeroporti, mese, ritardi, cancellazioni o cause.
 
@@ -448,13 +448,7 @@ Hive completa le tre tecnologie obbligatorie del progetto. Rispetto a Spark SQL,
 
 Per rendere confrontabili anche i run limitati, i sample benchmark vengono materializzati una sola volta in Parquet prima dell'esecuzione delle analisi. Spark SQL, Spark Core e Hive leggono quindi gli stessi file di input per `100k`, `500k`, `half` e `full`.
 
-## 6. Analisi 3.3 - Ranking anomalie compagnia-aeroporto
-
-Estensione opzionale.
-
-Da completare se il tempo lo permette.
-
-## 7. Benchmark
+## 6. Benchmark
 
 La Fase 7 consolida i tempi sperimentali prodotti dalle esecuzioni delle analisi 3.1 e 3.2 con Spark SQL, Spark Core e Hive.
 
@@ -488,7 +482,7 @@ Il file consolidato dei benchmark e:
 outputs/benchmarks/benchmark_summary.csv
 ```
 
-### 7.1 Tempi consolidati
+### 6.1 Tempi consolidati
 
 | Analisi | Tecnologia | Run size | Tempo esecuzione (s) | Righe output |
 | --- | --- | --- | ---: | ---: |
@@ -517,13 +511,13 @@ outputs/benchmarks/benchmark_summary.csv
 | 3.2 | Spark Core | full | 269.791 | 11.902 |
 | 3.2 | Hive | full | 37.650 | 11.902 |
 
-### 7.2 Commento iniziale
+### 6.2 Commento iniziale
 
 Nei benchmark locali Hive mostra i tempi migliori sulle due analisi e su tutte le dimensioni misurate. I run limitati sono ora confrontabili perche tutte le tecnologie leggono gli stessi sample Parquet deterministici.
 
 Spark Core resta competitivo sui sample piccoli, ma il costo della gestione esplicita delle aggregazioni RDD diventa piu evidente al crescere del volume, soprattutto nell'analisi 3.2. Sul dataset `full`, Spark SQL completa l'analisi 3.1 in 52.729 secondi contro 121.087 di Spark Core, mentre sull'analisi 3.2 completa in 59.036 secondi contro 269.791 di Spark Core.
 
-### 7.3 Test di efficienza e scalabilita
+### 6.3 Test di efficienza e scalabilita
 
 Per valutare la scalabilita, il dataset processed viene duplicato artificialmente e materializzato in HDFS prima dell'esecuzione delle analisi. I fattori usati sono:
 
@@ -578,7 +572,7 @@ Tempi consolidati del test di scalabilita:
 | 3.2 | Spark Core | 4x | 834.937 | 11.902 |
 | 3.2 | Hive | 4x | 78.349 | 11.902 |
 
-## 8. Grafici
+## 7. Grafici
 
 I grafici sono generati dallo script `src/generate_benchmark_figures.py`, eseguibile tramite:
 
@@ -595,31 +589,31 @@ Output generati:
 - `reports/figures/combined_analysis_3_1.svg`, dopo i run `scale_all`;
 - `reports/figures/combined_analysis_3_2.svg`, dopo i run `scale_all`.
 
-### 8.1 Tempi analisi 3.1
+### 7.1 Tempi analisi 3.1
 
 ![Benchmark analisi 3.1](figures/benchmark_analysis_3_1.svg)
 
-### 8.2 Tempi analisi 3.2
+### 7.2 Tempi analisi 3.2
 
 ![Benchmark analisi 3.2](figures/benchmark_analysis_3_2.svg)
 
-### 8.3 Scalabilita analisi 3.1
+### 7.3 Scalabilita analisi 3.1
 
 ![Scalabilita analisi 3.1](figures/scalability_analysis_3_1.svg)
 
-### 8.4 Scalabilita analisi 3.2
+### 7.4 Scalabilita analisi 3.2
 
 ![Scalabilita analisi 3.2](figures/scalability_analysis_3_2.svg)
 
-### 8.5 Benchmark e scalabilita analisi 3.1
+### 7.5 Benchmark e scalabilita analisi 3.1
 
 ![Benchmark e scalabilita analisi 3.1](figures/combined_analysis_3_1.svg)
 
-### 8.6 Benchmark e scalabilita analisi 3.2
+### 7.6 Benchmark e scalabilita analisi 3.2
 
 ![Benchmark e scalabilita analisi 3.2](figures/combined_analysis_3_2.svg)
 
-## 9. Confronto critico
+## 8. Confronto critico
 
 Da completare nella Fase 8.
 
@@ -631,7 +625,7 @@ Aspetti da discutere:
 - scalabilita;
 - impatto di shuffle, aggregazioni e preparazione dati.
 
-## 10. Riproducibilita
+## 9. Riproducibilita
 
 La Fase 1 introduce un ambiente locale basato su Docker Compose con:
 
@@ -662,6 +656,6 @@ Elementi previsti:
 - generazione benchmark;
 - generazione report PDF.
 
-## 11. Repository GitHub
+## 10. Repository GitHub
 
 Da aggiornare con il link al repository finale.
