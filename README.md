@@ -4,7 +4,7 @@ Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo è confront
 
 ## Stato del progetto
 
-Fase corrente: **Fase 8 completata**.
+Stato: **progetto completato**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
