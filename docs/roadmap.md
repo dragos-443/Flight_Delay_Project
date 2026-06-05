@@ -190,5 +190,5 @@ Criterio di completamento:
 - README completo;
 - repository consegnabile.
 
-Stato: **da fare**.
+Stato: **completata**.
 

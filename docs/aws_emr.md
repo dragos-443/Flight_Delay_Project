@@ -4,11 +4,11 @@ Questa procedura permette di eseguire su Amazon EMR gli stessi benchmark locali 
 
 ## 1. Scelta ambiente
 
-La prima scelta e Amazon EMR perche include Spark, Hive, Hadoop/YARN e integrazione S3. Nel Learner Lab usare una configurazione minima:
+La prima scelta e Amazon EMR perche include Spark, Hive, Hadoop/YARN e integrazione S3. Nel Learner Lab e stata usata questa configurazione:
 
 - applicazioni: Hadoop, Spark, Hive;
-- 1 nodo master e 1 nodo core;
-- istanze `m5.xlarge` se disponibili, altrimenti `m5.large` per test economici;
+- 1 nodo master `m5.xlarge`;
+- 2 nodi core `m5.2xlarge`;
 - 32-64 GB EBS per nodo;
 - log cluster su S3;
 - terminazione cluster appena finiti i benchmark.
@@ -65,8 +65,8 @@ Creare il cluster EMR dalla console AWS Academy scegliendo:
 
 - release EMR recente disponibile nel Learner Lab;
 - applicazioni Hadoop, Spark e Hive;
-- 1 master e 1 core node;
-- istanze `m5.xlarge` o, per risparmiare, `m5.large`;
+- 1 nodo master `m5.xlarge`;
+- 2 nodi core `m5.2xlarge`;
 - log su `s3://<bucket>/<prefix>/logs/emr/`.
 
 Collegarsi via SSH al nodo master EMR e scaricare codice e script:
