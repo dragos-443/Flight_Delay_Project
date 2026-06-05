@@ -1,14 +1,14 @@
 # Flight Delay Project
 
-Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo e confrontare diverse tecnologie per analisi su dati di grandi dimensioni, con attenzione a preparazione dati, implementazione, tempi di esecuzione e scalabilita.
+Progetto Big Data sul dataset Flight Delay Dataset 2024. L'obiettivo è confrontare diverse tecnologie per analisi su dati di grandi dimensioni, con attenzione a preparazione dati, implementazione, tempi di esecuzione e scalabilità.
 
 ## Stato del progetto
 
-Fase corrente: **Fase 7 completata**. Prossima fase: **Fase 8 - Analisi critica e rifinitura report**.
+Fase corrente: **Fase 8 completata**.
 
 Roadmap completa: [docs/roadmap.md](docs/roadmap.md)
 
-Report in lavorazione: [reports/report.md](reports/report.md)
+Report finale: [reports/report.md](reports/report.md)
 
 ## Tecnologie previste
 
@@ -603,10 +603,6 @@ Fermare i container eliminando anche i volumi Docker:
 ```
 
 Usare `-Volumes` solo quando si vuole cancellare anche lo stato HDFS e il metastore Hive.
-
-## Prossime fasi
-
-- Fase 8: analisi critica e rifinitura report
 
 ## Esecuzione su AWS Academy con EMR
 
