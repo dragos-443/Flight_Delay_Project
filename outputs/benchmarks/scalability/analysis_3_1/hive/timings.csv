@@ -1,0 +1,4 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp
+"analysis_3_1","hive","1x","/data/scaled/flights_clean_1x.parquet","/outputs/scalability/analysis_3_1/hive/1x",30.610,13248,"2026-06-04T10:42:30Z"
+"analysis_3_1","hive","2x","/data/scaled/flights_clean_2x.parquet","/outputs/scalability/analysis_3_1/hive/2x",38.348,13248,"2026-06-04T10:43:12Z"
+"analysis_3_1","hive","4x","/data/scaled/flights_clean_4x.parquet","/outputs/scalability/analysis_3_1/hive/4x",64.406,13248,"2026-06-04T10:44:00Z"

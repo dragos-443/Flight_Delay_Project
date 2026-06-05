@@ -1,0 +1,4 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp,environment
+"analysis_3_2","hive","1x","s3://flight-delay-5138901/flight-delay-project/scaled/flights_clean_1x.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/scalability/analysis_3_2/hive/1x",48.158,11902,"2026-06-04T19:57:11Z","aws_emr"
+"analysis_3_2","hive","2x","s3://flight-delay-5138901/flight-delay-project/scaled/flights_clean_2x.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/scalability/analysis_3_2/hive/2x",50.298,11902,"2026-06-04T19:58:15Z","aws_emr"
+"analysis_3_2","hive","4x","s3://flight-delay-5138901/flight-delay-project/scaled/flights_clean_4x.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/scalability/analysis_3_2/hive/4x",52.663,11902,"2026-06-04T19:59:22Z","aws_emr"

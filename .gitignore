@@ -21,14 +21,11 @@ data/samples/*
 !data/processed/.gitkeep
 !data/samples/.gitkeep
 
-# Outputs and benchmark artifacts
-outputs/*
-!outputs/.gitkeep
-
 # Report generated artifacts
 reports/report.md
 reports/figures/*
 !reports/figures/.gitkeep
+!reports/figures/*.svg
 reports/*.pdf
 scripts/export_report_pdf.ps1
 src/export_report_pdf.py

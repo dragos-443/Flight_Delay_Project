@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="600" viewBox="0 0 980 600">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="32.0" y="38.0" font-family="Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" fill="#111827">Analisi 3.1 - tempi di esecuzione</text>
+<text x="32.0" y="64.0" font-family="Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start" fill="#111827">Confronto su Amazon EMR tra Spark SQL, Spark Core e Hive sui dataset scalati</text>
+<line x1="82" y1="472.0" x2="938" y2="472.0" stroke="#e5e7eb"/>
+<text x="72.0" y="476.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">0.0s</text>
+<line x1="82" y1="396.8" x2="938" y2="396.8" stroke="#e5e7eb"/>
+<text x="72.0" y="400.8" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">30.0s</text>
+<line x1="82" y1="321.6" x2="938" y2="321.6" stroke="#e5e7eb"/>
+<text x="72.0" y="325.6" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">60.1s</text>
+<line x1="82" y1="246.4" x2="938" y2="246.4" stroke="#e5e7eb"/>
+<text x="72.0" y="250.4" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">90.1s</text>
+<line x1="82" y1="171.2" x2="938" y2="171.2" stroke="#e5e7eb"/>
+<text x="72.0" y="175.2" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">120.1s</text>
+<line x1="82" y1="96.0" x2="938" y2="96.0" stroke="#e5e7eb"/>
+<text x="72.0" y="100.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">150.2s</text>
+<line x1="82" y1="472" x2="938" y2="472" stroke="#9ca3af"/>
+<line x1="82" y1="96" x2="82" y2="472" stroke="#9ca3af"/>
+<line x1="82.0" y1="472" x2="82.0" y2="478" stroke="#9ca3af"/>
+<text x="82.0" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">1x</text>
+<line x1="510.0" y1="472" x2="510.0" y2="478" stroke="#9ca3af"/>
+<text x="510.0" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">2x</text>
+<line x1="938.0" y1="472" x2="938.0" y2="478" stroke="#9ca3af"/>
+<text x="938.0" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">4x</text>
+<path d="M 82.0 296.7 L 510.0 299.5 L 938.0 288.6" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="296.7" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="82.0" y="284.7" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">70.0s</text>
+<circle cx="510.0" cy="299.5" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="510.0" y="287.5" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">68.9s</text>
+<circle cx="938.0" cy="288.6" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="938.0" y="276.6" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">73.2s</text>
+<path d="M 82.0 284.8 L 510.0 283.4 L 938.0 153.4" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="284.8" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="82.0" y="272.8" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">74.7s</text>
+<circle cx="510.0" cy="283.4" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="510.0" y="271.4" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">75.3s</text>
+<circle cx="938.0" cy="153.4" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="938.0" y="141.4" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">127.3s</text>
+<path d="M 82.0 358.9 L 510.0 340.6 L 938.0 332.6" fill="none" stroke="#16a34a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="358.9" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="82.0" y="346.9" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">45.2s</text>
+<circle cx="510.0" cy="340.6" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="510.0" y="328.6" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">52.5s</text>
+<circle cx="938.0" cy="332.6" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="938.0" y="320.6" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">55.7s</text>
+<line x1="82" y1="559" x2="98" y2="559" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<circle cx="90" cy="559" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<text x="104.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Spark SQL</text>
+<line x1="232" y1="559" x2="248" y2="559" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+<circle cx="240" cy="559" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="254.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Spark Core</text>
+<line x1="382" y1="559" x2="398" y2="559" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+<circle cx="390" cy="559" r="4" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+<text x="404.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Hive</text>
+<text x="490.0" y="536.0" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#111827">Fattore scala</text>
+<text x="18" y="300" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#111827" transform="rotate(-90 18 300)">Tempo esecuzione</text>
+</svg>

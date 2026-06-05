@@ -1,0 +1,5 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp
+"analysis_3_2","spark_sql","100k","hdfs://namenode:8020/data/samples/flights_clean_100k.parquet","hdfs://namenode:8020/outputs/analysis_3_2/spark_sql/100k",49.498,846,"2026-06-03T17:09:19Z"
+"analysis_3_2","spark_sql","500k","hdfs://namenode:8020/data/samples/flights_clean_500k.parquet","hdfs://namenode:8020/outputs/analysis_3_2/spark_sql/500k",48.152,992,"2026-06-03T17:10:13Z"
+"analysis_3_2","spark_sql","half","hdfs://namenode:8020/data/samples/flights_clean_half.parquet","hdfs://namenode:8020/outputs/analysis_3_2/spark_sql/half",47.836,6770,"2026-06-03T17:11:06Z"
+"analysis_3_2","spark_sql","full","hdfs://namenode:8020/data/samples/flights_clean_full.parquet","hdfs://namenode:8020/outputs/analysis_3_2/spark_sql/full",59.036,11902,"2026-06-03T17:11:59Z"

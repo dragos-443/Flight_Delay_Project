@@ -1,0 +1,5 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp,environment
+"analysis_3_1","spark_sql","100k","s3://flight-delay-5138901/flight-delay-project/samples/flights_clean_100k.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/analysis_3_1/spark_sql/100k",153.650,8710,"2026-06-04T18:43:22Z","aws_emr"
+"analysis_3_1","spark_sql","500k","s3://flight-delay-5138901/flight-delay-project/samples/flights_clean_500k.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/analysis_3_1/spark_sql/500k",65.057,9681,"2026-06-04T18:45:58Z","aws_emr"
+"analysis_3_1","spark_sql","half","s3://flight-delay-5138901/flight-delay-project/samples/flights_clean_half.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/analysis_3_1/spark_sql/half",71.632,12180,"2026-06-04T18:47:05Z","aws_emr"
+"analysis_3_1","spark_sql","full","s3://flight-delay-5138901/flight-delay-project/samples/flights_clean_full.parquet","s3://flight-delay-5138901/flight-delay-project/outputs/aws/analysis_3_1/spark_sql/full",78.024,13248,"2026-06-04T18:48:19Z","aws_emr"

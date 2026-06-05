@@ -1,0 +1,5 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp
+"analysis_3_1","hive","100k","/data/samples/flights_clean_100k.parquet","/outputs/analysis_3_1/hive/100k",7.897,8710,"2026-06-03T17:07:42Z"
+"analysis_3_1","hive","500k","/data/samples/flights_clean_500k.parquet","/outputs/analysis_3_1/hive/500k",7.685,9681,"2026-06-03T17:07:59Z"
+"analysis_3_1","hive","half","/data/samples/flights_clean_half.parquet","/outputs/analysis_3_1/hive/half",14.527,12180,"2026-06-03T17:08:15Z"
+"analysis_3_1","hive","full","/data/samples/flights_clean_full.parquet","/outputs/analysis_3_1/hive/full",20.447,13248,"2026-06-03T17:08:38Z"

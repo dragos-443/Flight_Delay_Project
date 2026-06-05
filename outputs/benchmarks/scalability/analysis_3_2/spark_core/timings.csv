@@ -1,0 +1,4 @@
+analysis,technology,run_size,input_path,output_path,execution_time_seconds,output_rows,run_timestamp
+"analysis_3_2","spark_core","1x","hdfs://namenode:8020/data/scaled/flights_clean_1x.parquet","hdfs://namenode:8020/outputs/scalability/analysis_3_2/spark_core/1x",244.714,11902,"2026-06-04T11:14:31Z"
+"analysis_3_2","spark_core","2x","hdfs://namenode:8020/data/scaled/flights_clean_2x.parquet","hdfs://namenode:8020/outputs/scalability/analysis_3_2/spark_core/2x",453.049,11902,"2026-06-04T11:18:44Z"
+"analysis_3_2","spark_core","4x","hdfs://namenode:8020/data/scaled/flights_clean_4x.parquet","hdfs://namenode:8020/outputs/scalability/analysis_3_2/spark_core/4x",834.937,11902,"2026-06-04T11:26:23Z"

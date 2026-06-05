@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="600" viewBox="0 0 980 600">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="32.0" y="38.0" font-family="Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" fill="#111827">Analisi 3.2 - tempi di esecuzione</text>
+<text x="32.0" y="64.0" font-family="Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start" fill="#111827">Confronto tra Spark SQL, Spark Core e Hive sui run size disponibili</text>
+<line x1="82" y1="472.0" x2="938" y2="472.0" stroke="#e5e7eb"/>
+<text x="72.0" y="476.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">0.0s</text>
+<line x1="82" y1="396.8" x2="938" y2="396.8" stroke="#e5e7eb"/>
+<text x="72.0" y="400.8" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">63.7s</text>
+<line x1="82" y1="321.6" x2="938" y2="321.6" stroke="#e5e7eb"/>
+<text x="72.0" y="325.6" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">127.3s</text>
+<line x1="82" y1="246.4" x2="938" y2="246.4" stroke="#e5e7eb"/>
+<text x="72.0" y="250.4" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">191.0s</text>
+<line x1="82" y1="171.2" x2="938" y2="171.2" stroke="#e5e7eb"/>
+<text x="72.0" y="175.2" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">254.7s</text>
+<line x1="82" y1="96.0" x2="938" y2="96.0" stroke="#e5e7eb"/>
+<text x="72.0" y="100.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="end" fill="#111827">318.4s</text>
+<line x1="82" y1="472" x2="938" y2="472" stroke="#9ca3af"/>
+<line x1="82" y1="96" x2="82" y2="472" stroke="#9ca3af"/>
+<line x1="82.0" y1="472" x2="82.0" y2="478" stroke="#9ca3af"/>
+<text x="82.0" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">100k</text>
+<line x1="367.3" y1="472" x2="367.3" y2="478" stroke="#9ca3af"/>
+<text x="367.3" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">500k</text>
+<line x1="652.7" y1="472" x2="652.7" y2="478" stroke="#9ca3af"/>
+<text x="652.7" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">half</text>
+<line x1="938.0" y1="472" x2="938.0" y2="478" stroke="#9ca3af"/>
+<text x="938.0" y="500.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#111827">full</text>
+<path d="M 82.0 413.5 L 367.3 415.1 L 652.7 415.5 L 938.0 402.3" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="413.5" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="82.0" y="401.5" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">49.5s</text>
+<circle cx="367.3" cy="415.1" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="367.3" y="403.1" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">48.2s</text>
+<circle cx="652.7" cy="415.5" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="652.7" y="403.5" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">47.8s</text>
+<circle cx="938.0" cy="402.3" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+<text x="938.0" y="390.3" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">59.0s</text>
+<path d="M 82.0 439.1 L 367.3 424.1 L 652.7 275.0 L 938.0 153.4" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="439.1" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="82.0" y="427.1" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">27.8s</text>
+<circle cx="367.3" cy="424.1" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="367.3" y="412.1" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">40.6s</text>
+<circle cx="652.7" cy="275.0" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="652.7" y="263.0" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">166.8s</text>
+<circle cx="938.0" cy="153.4" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+<text x="938.0" y="141.4" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">269.8s</text>
+<path d="M 82.0 453.1 L 367.3 444.4 L 652.7 443.0 L 938.0 427.5" fill="none" stroke="#16a34a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="82.0" cy="453.1" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="82.0" y="441.1" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">16.0s</text>
+<circle cx="367.3" cy="444.4" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="367.3" y="432.4" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">23.4s</text>
+<circle cx="652.7" cy="443.0" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="652.7" y="431.0" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">24.5s</text>
+<circle cx="938.0" cy="427.5" r="5" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+<text x="938.0" y="415.5" font-family="Arial, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#111827">37.6s</text>
+<line x1="82" y1="559" x2="98" y2="559" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<circle cx="90" cy="559" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<text x="104.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Spark SQL</text>
+<line x1="232" y1="559" x2="248" y2="559" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+<circle cx="240" cy="559" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="254.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Spark Core</text>
+<line x1="382" y1="559" x2="398" y2="559" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+<circle cx="390" cy="559" r="4" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+<text x="404.0" y="566.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#111827">Hive</text>
+<text x="490.0" y="536.0" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#111827">Dimensione input</text>
+<text x="18" y="300" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#111827" transform="rotate(-90 18 300)">Tempo esecuzione</text>
+</svg>
