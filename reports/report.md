@@ -1,6 +1,6 @@
 # Flight Delay Project - Report Finale
 
-## 1. Introduzione
+## 1. Panoramica
 
 Questo report documenta lo sviluppo incrementale del progetto sul Flight Delay Dataset 2024, con confronto tra Spark SQL, Spark Core e Hive.
 
@@ -26,7 +26,7 @@ Colonne principali:
 
 ## 3. Preparazione e pulizia dei dati
 
-La Fase 2 produce un dataset processed comune, salvato in HDFS in formato Parquet e CSV, da usare come input unico per Spark SQL, Spark Core e Hive.
+La preparazione produce un dataset pulito e comune a tutte le tecnologie, salvato in HDFS in formato Parquet e CSV. Spark SQL, Spark Core e Hive usano quindi lo stesso input di partenza.
 
 Input raw:
 
@@ -77,7 +77,7 @@ La colonna `diverted` viene usata durante la pulizia per rimuovere i voli deviat
 
 ### 3.3 Regole di normalizzazione e pulizia
 
-La pipeline converte `fl_date` in tipo data, normalizza campi numerici e flag, e applica `trim`/uppercase ai codici categorici principali.
+La pipeline converte `fl_date` in tipo data, normalizza campi numerici e flag, rimuove eventuali spazi superflui dai codici categorici principali e li converte in maiuscolo.
 
 Sono rimossi i record:
 
@@ -111,7 +111,7 @@ Conteggi prodotti dalla pipeline:
 
 ## 4. Analisi 3.1 - Statistiche delle compagnie aeree
 
-La prima implementazione dell'analisi 3.1 e stata realizzata con Spark SQL nella Fase 3. Le repliche Spark Core e Hive sono state completate nelle Fasi 5 e 6.
+L'analisi 3.1 e stata implementata con Spark SQL, Spark Core e Hive, usando per tutte le tecnologie lo stesso dataset pulito.
 
 Metriche previste:
 
@@ -164,7 +164,7 @@ Primi tempi di validazione Spark SQL:
 
 La query aggrega i dati per compagnia (`op_unique_carrier`) e tratta (`route`). Per ogni gruppo calcola numero voli, ritardo minimo, massimo e medio in arrivo, tasso di cancellazione e mesi operativi. Il tasso di cancellazione e salvato come frazione tra 0 e 1: ad esempio `0.0138` corrisponde a circa `1.38%`.
 
-Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo della Fase 7.
+Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo dei benchmark.
 
 | Run | Tempo esecuzione (s) | Righe output |
 | --- | ---: | ---: |
@@ -276,7 +276,7 @@ Le prime 10 righe dell'output `full` coincidono con quelle riportate per Spark S
 
 ## 5. Analisi 3.2 - Report ritardi per aeroporto e mese
 
-La prima implementazione dell'analisi 3.2 e stata realizzata con Spark SQL nella Fase 4. Le repliche Spark Core e Hive sono state completate nelle Fasi 5 e 6.
+L'analisi 3.2 e stata implementata con Spark SQL, Spark Core e Hive, usando per tutte le tecnologie lo stesso dataset pulito.
 
 Metriche previste:
 
@@ -328,7 +328,7 @@ Tempi di validazione:
 
 La query considera le tre fasce richieste dalla traccia (`low`, `medium`, `high`) ed esclude la fascia `unknown`, che contiene voli senza ritardo in partenza disponibile. Il report produce una riga per aeroporto di partenza, mese e fascia. Per ogni gruppo calcola numero voli, ritardo medio in partenza, ritardo medio in arrivo e le tre cause piu frequenti tra quelle disponibili. Le cause sono riportate nel formato `causa:conteggio`; quando non sono disponibili cause valorizzate viene scritto `none`.
 
-Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo della Fase 7.
+Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo dei benchmark.
 
 | Run | Tempo esecuzione (s) | Righe output |
 | --- | ---: | ---: |
@@ -450,7 +450,7 @@ Per rendere confrontabili anche i run limitati, i sample benchmark vengono mater
 
 ## 6. Benchmark
 
-La Fase 7 consolida i tempi sperimentali prodotti dalle esecuzioni delle analisi 3.1 e 3.2 con Spark SQL, Spark Core e Hive.
+Questa sezione consolida i tempi sperimentali prodotti dalle esecuzioni delle analisi 3.1 e 3.2 con Spark SQL, Spark Core e Hive.
 
 Prima dei benchmark viene eseguita una fase di preparazione dei sample deterministici:
 
@@ -467,7 +467,7 @@ Lo script legge il dataset pulito comune e salva i sample Parquet in:
 /data/samples/flights_clean_full.parquet
 ```
 
-I job delle singole tecnologie non applicano piu `LIMIT` internamente durante i benchmark: il parametro `RunSize` seleziona il file Parquet gia materializzato.
+Durante i benchmark, il parametro `RunSize` seleziona il file Parquet gia materializzato da usare come input per ciascuna tecnologia.
 
 Le dimensioni usate nei benchmark sono:
 
@@ -513,7 +513,7 @@ outputs/benchmarks/benchmark_summary.csv
 
 ### 6.2 Commento iniziale
 
-Nei benchmark locali Hive mostra i tempi migliori sulle due analisi e su tutte le dimensioni misurate. I run limitati sono ora confrontabili perche tutte le tecnologie leggono gli stessi sample Parquet deterministici.
+Nei benchmark locali Hive mostra i tempi migliori sulle due analisi e su tutte le dimensioni misurate. Il confronto e basato sugli stessi sample Parquet deterministici per tutte le tecnologie, cosi ogni run usa lo stesso input.
 
 Spark Core resta competitivo sui sample piccoli, ma il costo della gestione esplicita delle aggregazioni RDD diventa piu evidente al crescere del volume, soprattutto nell'analisi 3.2. Sul dataset `full`, Spark SQL completa l'analisi 3.1 in 52.729 secondi contro 121.087 di Spark Core, mentre sull'analisi 3.2 completa in 59.036 secondi contro 269.791 di Spark Core.
 
@@ -589,45 +589,47 @@ Output generati:
 - `reports/figures/combined_analysis_3_1.svg`, dopo i run `scale_all`;
 - `reports/figures/combined_analysis_3_2.svg`, dopo i run `scale_all`.
 
-### 7.1 Tempi analisi 3.1
+### 7.1 Grafico sui sample - analisi 3.1
 
 ![Benchmark analisi 3.1](figures/benchmark_analysis_3_1.svg)
 
-### 7.2 Tempi analisi 3.2
+### 7.2 Grafico sui sample - analisi 3.2
 
 ![Benchmark analisi 3.2](figures/benchmark_analysis_3_2.svg)
 
-### 7.3 Scalabilita analisi 3.1
+### 7.3 Grafico sui dataset scalati - analisi 3.1
 
-![Scalabilita analisi 3.1](figures/scalability_analysis_3_1.svg)
+![Grafico sui dataset scalati analisi 3.1](figures/scalability_analysis_3_1.svg)
 
-### 7.4 Scalabilita analisi 3.2
+### 7.4 Grafico sui dataset scalati - analisi 3.2
 
-![Scalabilita analisi 3.2](figures/scalability_analysis_3_2.svg)
+![Grafico sui dataset scalati analisi 3.2](figures/scalability_analysis_3_2.svg)
 
-### 7.5 Benchmark e scalabilita analisi 3.1
+### 7.5 Grafico unificato sample e dataset scalati - analisi 3.1
 
-![Benchmark e scalabilita analisi 3.1](figures/combined_analysis_3_1.svg)
+![Grafico unificato sample e dataset scalati analisi 3.1](figures/combined_analysis_3_1.svg)
 
-### 7.6 Benchmark e scalabilita analisi 3.2
+### 7.6 Grafico unificato sample e dataset scalati - analisi 3.2
 
-![Benchmark e scalabilita analisi 3.2](figures/combined_analysis_3_2.svg)
+![Grafico unificato sample e dataset scalati analisi 3.2](figures/combined_analysis_3_2.svg)
 
-## 8. Confronto critico
+## 8. Analisi critica dei risultati
 
-Da completare nella Fase 8.
+Le tre tecnologie producono risultati coerenti, ma mostrano differenze importanti per espressivita, semplicita implementativa ed efficienza.
 
-Aspetti da discutere:
+Spark SQL e la soluzione piu espressiva per entrambe le analisi. Le aggregazioni, i filtri, gli ordinamenti e le funzioni finestra sono descritti in modo dichiarativo, lasciando a Spark Catalyst il compito di ottimizzare il piano fisico. Questo e particolarmente utile nell'analisi 3.2, dove la costruzione delle top 3 cause richiede ranking e aggregazioni su chiavi multiple.
 
-- espressivita delle tecnologie;
-- semplicita implementativa;
-- efficienza;
-- scalabilita;
-- impatto di shuffle, aggregazioni e preparazione dati.
+Spark Core rende piu esplicito il modello distribuito, perche ogni passaggio viene espresso tramite trasformazioni RDD. Questo aiuta a comprendere dove avvengono `map`, `reduceByKey`, ordinamenti e conversioni finali, ma aumenta la complessita del codice e rende piu costosa la gestione manuale di chiavi composte, accumulatori e arrotondamenti. Nei benchmark locali Spark Core cresce sensibilmente sui dataset grandi, soprattutto nell'analisi 3.2, dove la logica delle top cause introduce piu passaggi di aggregazione.
+
+Hive risulta molto competitivo nei tempi locali e mantiene una buona leggibilita, perche lavora in modo dichiarativo su tabelle esterne Parquet. La sintassi e meno flessibile rispetto a Spark SQL per alcune trasformazioni, ma si adatta bene a job batch di aggregazione. Il suo utilizzo ha permesso di applicare la stessa logica analitica con un motore SQL diverso, mantenendo invariati input e risultati attesi.
+
+Le operazioni piu impattanti sono gli shuffle dovuti alle aggregazioni per compagnia/tratta nell'analisi 3.1 e per aeroporto/mese/fascia nell'analisi 3.2. Anche il calcolo delle top 3 cause introduce ordinamenti e raggruppamenti aggiuntivi. La scelta di materializzare prima il dataset pulito, i sample e i dataset scalati riduce la variabilita dei benchmark: i tempi misurati riguardano l'analisi vera e propria, non la costruzione dell'input.
+
+Il confronto locale/AWS mostra che il cluster EMR introduce overhead, in particolare sui sample piccoli, per avvio job, scheduling YARN e accesso a S3. Sui volumi piu grandi e nei test di scalabilita, l'ambiente cluster mostra invece un comportamento piu stabile, soprattutto per Spark SQL. Questo conferma che il vantaggio del cluster emerge meglio quando il carico e sufficiente a compensare i costi fissi di distribuzione.
 
 ## 9. Esecuzione su AWS Academy
 
-Per soddisfare la raccomandazione della traccia di confrontare, quando possibile, ambiente locale e cluster, i benchmark sono stati eseguiti anche su Amazon EMR in AWS Academy.
+Per confrontare l'esecuzione locale con un contesto distribuito, i benchmark sono stati ripetuti anche su un cluster Amazon EMR disponibile tramite AWS Academy.
 
 La configurazione finale usata per i risultati AWS e:
 
@@ -635,7 +637,6 @@ La configurazione finale usata per i risultati AWS e:
 - Hadoop 3.4.2, Spark 3.5.6 e Hive 3.1.3;
 - 1 nodo master `m5.xlarge`;
 - 2 nodi core `m5.2xlarge`;
-- 0 nodi task;
 - storage dati e output su S3.
 
 Durante la configurazione sono stati provati cluster piu grandi o configurazioni non stabili nel Learner Lab. Per questo motivo i benchmark riportati fanno riferimento solo al cluster EMR effettivamente completato, con master `m5.xlarge` e due nodi core `m5.2xlarge`.
@@ -749,6 +750,8 @@ outputs/benchmarks/aws_scalability_summary.csv
 
 I grafici AWS sono stati generati in `reports/figures`:
 
+Come nel confronto locale, anche per AWS sono stati predisposti grafici separati per distinguere i diversi tipi di benchmark. I primi due mostrano i tempi sui sample `100k`, `500k`, `half` e `full`; i due successivi mostrano il test di scalabilita sui dataset `1x`, `2x` e `4x`; gli ultimi due combinano sample e dataset scalati per fornire una vista complessiva dell'andamento dei tempi.
+
 ![Benchmark AWS analisi 3.1](figures/aws_benchmark_analysis_3_1.svg)
 
 ![Benchmark AWS analisi 3.2](figures/aws_benchmark_analysis_3_2.svg)
@@ -765,7 +768,7 @@ I tempi AWS mostrano l'overhead del contesto cluster e dell'accesso a S3, soprat
 
 ## 10. Riproducibilita
 
-La Fase 1 introduce un ambiente locale basato su Docker Compose con:
+L'ambiente locale e basato su Docker Compose e include:
 
 - HDFS, composto da NameNode e DataNode;
 - Hive, composto da metastore PostgreSQL, Hive Metastore e HiveServer2;
@@ -773,7 +776,7 @@ La Fase 1 introduce un ambiente locale basato su Docker Compose con:
 
 Il dataset originale viene mantenuto fuori dal repository Git e caricato in HDFS tramite lo script `scripts/load_dataset_to_hdfs.ps1`.
 
-Stato Fase 1: completata. Il file `flight_data_2024.csv` e stato caricato in HDFS nel percorso `/data/raw/flight_data_2024.csv`.
+Il file `flight_data_2024.csv` e stato caricato in HDFS nel percorso `/data/raw/flight_data_2024.csv`.
 
 Comandi principali:
 
@@ -792,8 +795,12 @@ Elementi previsti:
 - caricamento dataset in HDFS;
 - esecuzione analisi;
 - generazione benchmark;
-- generazione report PDF.
+- consultazione dei risultati e dei grafici nel report finale.
 
 ## 11. Repository GitHub
 
-Da aggiornare con il link al repository finale.
+Il codice completo del progetto e disponibile nel repository GitHub:
+
+```text
+https://github.com/dragos-443/Flight_Delay_Project
+```

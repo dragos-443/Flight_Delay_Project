@@ -26,9 +26,12 @@ outputs/*
 !outputs/.gitkeep
 
 # Report generated artifacts
+reports/report.md
 reports/figures/*
 !reports/figures/.gitkeep
 reports/*.pdf
+scripts/export_report_pdf.ps1
+src/export_report_pdf.py
 
 # Spark/Hadoop/Hive local artifacts
 metastore_db/
