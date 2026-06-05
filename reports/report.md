@@ -1,4 +1,4 @@
-﻿# Flight Delay Project - Report Finale
+# Flight Delay Project - Report Finale
 
 <div class="report-meta">
   <span>Studente</span>
