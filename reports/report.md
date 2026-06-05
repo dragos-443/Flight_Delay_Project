@@ -156,7 +156,7 @@ Output:
 
 Gli output completi sono salvati in HDFS, mentre nel repository vengono mantenuti codice, script, report e benchmark. Questa scelta evita di versionare file generati e potenzialmente grandi; se necessario, i CSV completi possono essere esportati localmente da HDFS con `hdfs dfs -getmerge`.
 
-Tempi preliminari:
+Primi tempi di validazione Spark SQL:
 
 ```text
 /outputs/benchmarks/analysis_3_1/spark_sql/timings.csv
@@ -164,7 +164,7 @@ Tempi preliminari:
 
 La query aggrega i dati per compagnia (`op_unique_carrier`) e tratta (`route`). Per ogni gruppo calcola numero voli, ritardo minimo, massimo e medio in arrivo, tasso di cancellazione e mesi operativi. Il tasso di cancellazione e salvato come frazione tra 0 e 1: ad esempio `0.0138` corrisponde a circa `1.38%`.
 
-Le prove progressive sono state eseguite per validare il job su volumi crescenti. I tempi sono preliminari e saranno riusati nella Fase 7 per il confronto con Spark Core e Hive.
+Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo della Fase 7.
 
 | Run | Tempo esecuzione (s) | Righe output |
 | --- | ---: | ---: |
@@ -212,7 +212,7 @@ Output:
     parquet/
 ```
 
-Tempi preliminari:
+Primi tempi di validazione Spark SQL:
 
 ```text
 /outputs/benchmarks/analysis_3_1/spark_core/timings.csv
@@ -257,7 +257,7 @@ Output:
     parquet/
 ```
 
-Tempi preliminari:
+Tempi di validazione:
 
 ```text
 /outputs/benchmarks/analysis_3_1/hive/timings.csv
@@ -320,7 +320,7 @@ Output:
 
 Gli output completi sono salvati in HDFS, mentre nel repository vengono mantenuti codice, script, report e benchmark. Questa scelta evita di versionare file generati e potenzialmente grandi; se necessario, i CSV completi possono essere esportati localmente da HDFS con `hdfs dfs -getmerge`.
 
-Tempi preliminari:
+Tempi di validazione:
 
 ```text
 /outputs/benchmarks/analysis_3_2/spark_sql/timings.csv
@@ -328,7 +328,7 @@ Tempi preliminari:
 
 La query considera le tre fasce richieste dalla traccia (`low`, `medium`, `high`) ed esclude la fascia `unknown`, che contiene voli senza ritardo in partenza disponibile. Il report produce una riga per aeroporto di partenza, mese e fascia. Per ogni gruppo calcola numero voli, ritardo medio in partenza, ritardo medio in arrivo e le tre cause piu frequenti tra quelle disponibili. Le cause sono riportate nel formato `causa:conteggio`; quando non sono disponibili cause valorizzate viene scritto `none`.
 
-Le prove progressive sono state eseguite per validare il job su volumi crescenti. I tempi sono preliminari e saranno riusati nella Fase 7 per il confronto con Spark Core e Hive.
+Le prove progressive sono state eseguite per validare il job su volumi crescenti prima del confronto completo della Fase 7.
 
 | Run | Tempo esecuzione (s) | Righe output |
 | --- | ---: | ---: |
@@ -376,7 +376,7 @@ Output:
     parquet/
 ```
 
-Tempi preliminari:
+Tempi di validazione:
 
 ```text
 /outputs/benchmarks/analysis_3_2/spark_core/timings.csv
@@ -425,7 +425,7 @@ Output:
     parquet/
 ```
 
-Tempi preliminari:
+Tempi di validazione:
 
 ```text
 /outputs/benchmarks/analysis_3_2/hive/timings.csv
@@ -627,54 +627,56 @@ Aspetti da discutere:
 
 ## 9. Esecuzione su AWS Academy
 
-Per soddisfare la raccomandazione della traccia di confrontare, quando possibile, ambiente locale e cluster, il progetto e stato predisposto anche per l'esecuzione su Amazon EMR in AWS Academy.
+Per soddisfare la raccomandazione della traccia di confrontare, quando possibile, ambiente locale e cluster, i benchmark sono stati eseguiti anche su Amazon EMR in AWS Academy.
 
-La scelta iniziale e EMR perche fornisce direttamente Spark, Hive, Hadoop/YARN e integrazione con S3. Se EMR non fosse disponibile nel Learner Lab, la soluzione alternativa sara una macchina EC2 configurata manualmente, ma questa non viene inclusa nella prima procedura.
+La configurazione finale usata per i risultati AWS e:
 
-Le dipendenze operative sono AWS CLI, Bash, Python 3 e un cluster EMR con Hadoop, Spark e Hive abilitati.
+- Amazon EMR `emr-7.13.0`;
+- Hadoop 3.4.2, Spark 3.5.6 e Hive 3.1.3;
+- 1 nodo master `m5.xlarge`;
+- 2 nodi core `m5.2xlarge`;
+- 0 nodi task;
+- storage dati e output su S3.
 
-Configurazione minima consigliata per contenere il credito:
+Durante la configurazione sono stati provati cluster piu grandi o configurazioni non stabili nel Learner Lab. Per questo motivo i benchmark riportati fanno riferimento solo al cluster EMR effettivamente completato, con master `m5.xlarge` e due nodi core `m5.2xlarge`.
 
-- cluster EMR con Hadoop, Spark e Hive;
-- 1 nodo master e 1 nodo core;
-- istanze `m5.xlarge` se disponibili, oppure `m5.large` per una prova economica;
-- EBS 32-64 GB per nodo;
-- terminazione del cluster subito dopo i benchmark.
-
-Lo storage AWS usa S3 con percorsi separati da quelli locali:
+Lo storage AWS e stato organizzato su S3 con percorsi separati da quelli locali:
 
 ```text
-s3://<bucket>/<prefix>/raw/
-s3://<bucket>/<prefix>/processed/
-s3://<bucket>/<prefix>/samples/
-s3://<bucket>/<prefix>/scaled/
-s3://<bucket>/<prefix>/outputs/aws/
-s3://<bucket>/<prefix>/benchmarks/aws/
-s3://<bucket>/<prefix>/logs/
+s3://flight-delay-5138901/flight-delay-project/raw/
+s3://flight-delay-5138901/flight-delay-project/processed/
+s3://flight-delay-5138901/flight-delay-project/samples/
+s3://flight-delay-5138901/flight-delay-project/scaled/
+s3://flight-delay-5138901/flight-delay-project/outputs/aws/
+s3://flight-delay-5138901/flight-delay-project/benchmarks/aws/
 ```
 
-Gli script bash in `scripts/aws/` permettono di caricare codice e dataset, preparare il dataset clean, creare sample e dataset scalati, eseguire Spark SQL, Spark Core e Hive e salvare i timing AWS in CSV dedicati. La procedura completa e documentata in `docs/aws_emr.md`.
+Prima dei benchmark sono stati materializzati su S3 il dataset pulito, i sample `100k`, `500k`, `half`, `full` e i dataset scalati `1x`, `2x`, `4x`. I tempi di preparazione non sono inclusi nei benchmark.
 
-Comandi principali sul nodo master EMR:
+Sul nodo master EMR sono stati sincronizzati codice e script dal bucket S3:
 
 ```bash
-export S3_BUCKET="nome-bucket"
+export S3_BUCKET="flight-delay-5138901"
 export S3_PREFIX="flight-delay-project"
 aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/src" ./src
 aws s3 sync "s3://${S3_BUCKET}/${S3_PREFIX}/scripts/aws" ./scripts/aws
 chmod +x scripts/aws/*.sh
+```
 
-./scripts/aws/prepare_clean_dataset.sh
-./scripts/aws/prepare_benchmark_samples.sh
-./scripts/aws/prepare_scalability_datasets.sh
+I benchmark AWS sui sample sono stati eseguiti con:
 
+```bash
 ./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql all
 ./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core all
 ./scripts/aws/run_hive_analysis.sh analysis_3_1 all
 ./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_sql all
 ./scripts/aws/run_spark_analysis.sh analysis_3_2 spark_core all
 ./scripts/aws/run_hive_analysis.sh analysis_3_2 all
+```
 
+I benchmark AWS di scalabilita sono stati eseguiti con:
+
+```bash
 ./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_sql scale_all
 ./scripts/aws/run_spark_analysis.sh analysis_3_1 spark_core scale_all
 ./scripts/aws/run_hive_analysis.sh analysis_3_1 scale_all
@@ -683,21 +685,83 @@ chmod +x scripts/aws/*.sh
 ./scripts/aws/run_hive_analysis.sh analysis_3_2 scale_all
 ```
 
-I tempi AWS vengono salvati in:
+I timing AWS sono stati scaricati localmente e consolidati in:
 
 ```text
-s3://<bucket>/<prefix>/benchmarks/aws/<analysis>/<technology>/timings.csv
-s3://<bucket>/<prefix>/benchmarks/aws/scalability/<analysis>/<technology>/timings.csv
-```
-
-Una volta scaricati nel repository locale, possono essere consolidati in:
-
-```text
+outputs/benchmarks/aws/
 outputs/benchmarks/aws_benchmark_summary.csv
 outputs/benchmarks/aws_scalability_summary.csv
 ```
 
-Dopo l'esecuzione su EMR, il confronto finale dovra affiancare i tempi locali e AWS per analisi, tecnologia e dimensione input. Nel commento critico andranno esplicitati l'overhead del cluster, l'uso di S3 al posto di HDFS locale, il comportamento sui sample piccoli e il vantaggio atteso dei run piu grandi.
+### 9.1 Tempi AWS sui sample
+
+| Analisi | Tecnologia | Run size | Tempo AWS (s) | Righe output |
+|---|---|---:|---:|---:|
+| 3.1 | Spark SQL | 100k | 153.650 | 8.710 |
+| 3.1 | Spark Core | 100k | 51.618 | 8.710 |
+| 3.1 | Hive | 100k | 37.443 | 8.710 |
+| 3.1 | Spark SQL | 500k | 65.057 | 9.681 |
+| 3.1 | Spark Core | 500k | 40.000 | 9.681 |
+| 3.1 | Hive | 500k | 40.941 | 9.681 |
+| 3.1 | Spark SQL | half | 71.632 | 12.180 |
+| 3.1 | Spark Core | half | 93.001 | 12.180 |
+| 3.1 | Hive | half | 41.447 | 12.180 |
+| 3.1 | Spark SQL | full | 78.024 | 13.248 |
+| 3.1 | Spark Core | full | 62.343 | 13.248 |
+| 3.1 | Hive | full | 67.625 | 13.248 |
+| 3.2 | Spark SQL | 100k | 71.756 | 846 |
+| 3.2 | Spark Core | 100k | 32.550 | 846 |
+| 3.2 | Hive | 100k | 41.348 | 846 |
+| 3.2 | Spark SQL | 500k | 75.866 | 992 |
+| 3.2 | Spark Core | 500k | 38.963 | 992 |
+| 3.2 | Hive | 500k | 35.811 | 992 |
+| 3.2 | Spark SQL | half | 79.548 | 6.770 |
+| 3.2 | Spark Core | half | 86.088 | 6.770 |
+| 3.2 | Hive | half | 40.744 | 6.770 |
+| 3.2 | Spark SQL | full | 89.792 | 11.902 |
+| 3.2 | Spark Core | full | 81.979 | 11.902 |
+| 3.2 | Hive | full | 70.722 | 11.902 |
+
+### 9.2 Tempi AWS di scalabilita
+
+| Analisi | Tecnologia | Scala | Tempo AWS (s) | Righe output |
+|---|---|---:|---:|---:|
+| 3.1 | Spark SQL | 1x | 70.031 | 13.248 |
+| 3.1 | Spark Core | 1x | 74.749 | 13.248 |
+| 3.1 | Hive | 1x | 45.161 | 13.248 |
+| 3.1 | Spark SQL | 2x | 68.884 | 13.248 |
+| 3.1 | Spark Core | 2x | 75.324 | 13.248 |
+| 3.1 | Hive | 2x | 52.499 | 13.248 |
+| 3.1 | Spark SQL | 4x | 73.246 | 13.248 |
+| 3.1 | Spark Core | 4x | 127.266 | 13.248 |
+| 3.1 | Hive | 4x | 55.662 | 13.248 |
+| 3.2 | Spark SQL | 1x | 66.674 | 11.902 |
+| 3.2 | Spark Core | 1x | 71.974 | 11.902 |
+| 3.2 | Hive | 1x | 48.158 | 11.902 |
+| 3.2 | Spark SQL | 2x | 66.350 | 11.902 |
+| 3.2 | Spark Core | 2x | 108.633 | 11.902 |
+| 3.2 | Hive | 2x | 50.298 | 11.902 |
+| 3.2 | Spark SQL | 4x | 66.719 | 11.902 |
+| 3.2 | Spark Core | 4x | 177.452 | 11.902 |
+| 3.2 | Hive | 4x | 52.663 | 11.902 |
+
+### 9.3 Grafici AWS
+
+I grafici AWS sono stati generati in `reports/figures`:
+
+![Benchmark AWS analisi 3.1](figures/aws_benchmark_analysis_3_1.svg)
+
+![Benchmark AWS analisi 3.2](figures/aws_benchmark_analysis_3_2.svg)
+
+![Scalabilita AWS analisi 3.1](figures/aws_scalability_analysis_3_1.svg)
+
+![Scalabilita AWS analisi 3.2](figures/aws_scalability_analysis_3_2.svg)
+
+![Benchmark e scalabilita AWS analisi 3.1](figures/aws_combined_analysis_3_1.svg)
+
+![Benchmark e scalabilita AWS analisi 3.2](figures/aws_combined_analysis_3_2.svg)
+
+I tempi AWS mostrano l'overhead del contesto cluster e dell'accesso a S3, soprattutto sui sample piccoli. Nei test di scalabilita, Spark SQL mantiene tempi molto stabili sui dataset duplicati, Hive cresce in modo moderato, mentre Spark Core aumenta sensibilmente sui fattori maggiori, in particolare sull'analisi 3.2.
 
 ## 10. Riproducibilita
 
